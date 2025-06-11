@@ -3,7 +3,7 @@ import React, {useState, useRef} from 'react';
 import axios from 'axios';
 
 
-function Auth() {
+function Auth(props) {
 
 const[authData, setAuthData] = useState({
     id:'',
@@ -17,13 +17,21 @@ const authSubmit = async () =>{
     {
         setTitleText('FETCHING');
         try{
-            const res = await fetch('${process.env.REACT_APP_URL}/auth',
+            const res = await fetch(`${process.env.REACT_APP_URL}/auth`,
             {method:'POST', headers: {'Content-Type':'application/json'},
             body: JSON.stringify(authData)});
-            
-            setTitleText('SUCCESSFUL');
+            if(!res.userData || !res.token){
+                setTitleText(res.message);
+                setTimeout(() => setTitleText('FIREWALL') , 1000);
+            }
+            else if(res.userData && res.token){
+                setTimeout(() => setTitleText(res.message) , 1000);
+                sessionStorage.setItem('token', res.token);
+                sessionStorage.setItem('userData', res.userData);
+                props.authentification();
+            }
         }
-        catch{
+        catch(err){
             setTitleText('ERROR');
             setTimeout(() => setTitleText('FIREWALL') , 1000); 
         }

@@ -22,6 +22,9 @@ const photoChangeClick = () =>
 {
     photoInput.current.click();
 };
+/* Задаю пользовательские данные */
+const userData = sessionStorage.getItem('userData');
+
 return (
     <main className = "account">
         <div className = "account__photo"><img src = {photo||"/img/CHAD.jpg"} alt = "CHAD"></img></div>
@@ -37,9 +40,9 @@ return (
             ref = {photoInput}
             />
         </div>
-        <div className = "account__name">Full Name: David Johnes Jr.</div>
-        <div className = "account__rank">Rank: Commander</div>
-        <div className = "account__division">Div: USSTRATCOM</div>
+        <div className = "account__name">Full Name: {userData.name}{userData.call_name}</div>
+        <div className = "account__rank">{userData.rank}</div>
+        <div className = "account__division">{userData.div}</div>
         <div className = "account__recordTitle">Service Record</div>
         <div className = "account__recordText">
             David Johnes Jr. is a highly decorated and respected officer with a 

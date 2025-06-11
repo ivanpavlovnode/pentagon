@@ -14,6 +14,25 @@ const db = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
+// Middleware проверки токена
+const checkToken = (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  
+  if (!token) {
+    return res.status(401).json({ error: 'Токен отсутствует' });
+  }
+
+  try {
+    // Проверяем подпись токена
+    const decoded = jwt.verify(token, SECRET_KEY);
+    req.user = decoded;
+
+
+
+  } catch (err) {
+    res.status(401).json({ error: 'Неверный токен' });
+  }
+};
 
 //Маршрут аутентификации
 app.post('/auth', async (req, res) =>
@@ -40,7 +59,7 @@ app.post('/auth', async (req, res) =>
       const token = jwt.sign(
       { userId: userData.id},
       process.env.JWT_SECRET,
-      { expiresIn: '1h' });
+      { expiresIn: '1h' });//секунды
       
       delete userData.password;
       res.json({message: 'SUCCESSFUL', userData, token});
@@ -50,6 +69,13 @@ app.post('/auth', async (req, res) =>
     res.json({message: 'INVALID'});
   }
 
+});
+//Защищенные маршруты
+app.get('/protected', checkToken, (req, res) => {
+  res.json({ 
+    message: 'Секретные данные!',
+    user: req.user 
+  });
 });
 
 // Запускаем сервер

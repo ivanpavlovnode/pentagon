@@ -14,7 +14,11 @@ function App(){
   //Переключатель аутентификации до вкладок
   const [isAuth, setIsAuth] = useState('nope');
 
-  // Функция-переключатель окна
+  // Функция-переключатель окна аутентификации
+  const authentification = () => {
+    setIsAuth('hell yeah!');
+  };
+  // Функция-переключатель окна main
   const changeComponent = (componentName) => {
     setCurrentComponent(componentName);
   };
@@ -55,7 +59,7 @@ function App(){
   else{
     return(
       <div>
-        <Auth/>
+        <Auth authentification={authentification}/>
       </div>
     )
   }
