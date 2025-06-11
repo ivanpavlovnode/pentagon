@@ -2,6 +2,7 @@ import { FOCUSABLE_SELECTOR } from '@testing-library/user-event/dist/utils';
 import React, {useState, useRef} from 'react';
 import axios from 'axios';
 
+
 function Auth() {
 
 const[authData, setAuthData] = useState({
@@ -16,10 +17,10 @@ const authSubmit = async () =>{
     {
         setTitleText('FETCHING');
         try{
-            const res = await fetch('http://localhost:5000/auth',
+            const res = await fetch('${process.env.REACT_APP_URL}/auth',
             {method:'POST', headers: {'Content-Type':'application/json'},
             body: JSON.stringify(authData)});
-
+            
             setTitleText('SUCCESSFUL');
         }
         catch{

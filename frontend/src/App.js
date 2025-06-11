@@ -9,9 +9,9 @@ import Equipment from './components/Equipment';
 import Auth from './components/Auth';
 
 function App(){
-  //Переключатель окна, активен только если isAuth === true
+  //Переключатель вкладок main
   const [currentComponent, setCurrentComponent] = useState('account');
-  //Переключатель аутентификации
+  //Переключатель аутентификации до вкладок
   const [isAuth, setIsAuth] = useState('nope');
 
   // Функция-переключатель окна
