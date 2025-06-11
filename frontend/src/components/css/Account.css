@@ -1,0 +1,46 @@
+.account {
+    min-height: 40vw;
+    height: 80vh;
+    width: 100%;
+    color: #09FF00;
+    line-height: normal;
+    font-size: 20vw;
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    grid-column-gap: 0px;
+    grid-row-gap: 0px;
+    z-index: 0;
+}
+.account *{
+    border-style: solid;
+    text-align: center;
+    line-height:1.5;
+}
+button{
+    position: relative;
+    z-index: 1;
+}
+.account__photo { 
+    grid-area: 1 / 1 / 8 / 4;
+    /*бэк в папке со стилями компонентов /src/components/css/...*/
+    background-image: url("pixelTextureBig.jpg");
+    background-size:cover;
+    object-fit: cover; 
+}
+.account__photo img{ 
+    opacity: 0.7;
+    image-rendering: pixelated;
+}
+.account__photoChange { 
+    grid-area: 8 / 1 / 9 / 4;
+    z-index: 1; 
+}
+.account__name { grid-area: 1 / 4 / 2 / 11; }
+.account__rank { grid-area: 2 / 4 / 3 / 7; }
+.account__division { grid-area: 2 / 7 / 3 / 11; }
+.account__recordTitle { grid-area: 3 / 4 / 4 / 11; }
+.account__recordText { 
+    grid-area: 4 / 4 / 9 / 11; 
+    overflow: hidden;
+}

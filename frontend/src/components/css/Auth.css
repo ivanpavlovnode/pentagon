@@ -1,0 +1,34 @@
+.auth{
+    height: 100%;
+    width: 100%;
+    line-height: normal;
+    z-index: 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    grid-column-gap: 0px;
+    grid-row-gap: 10px;
+    overflow:hidden
+}
+.auth *{
+    font-size: 4vw;
+    text-align: center;
+}
+@media screen and (max-width: 1080px) and (min-height: 800px){
+  .auth *{
+    font-size: 10vw; /* Уменьшаем размер шрифта на маленьких экранах */
+  }
+}
+.auth__title{
+    grid-area: 3 / 2 / 4 / 4;
+    text-align: center;
+}
+.auth__login{
+    grid-area: 4 / 2 / 5 / 4;
+}
+.auth__pass{
+    grid-area: 5 / 2 / 6 / 4;
+}
+.auth__btn{
+    grid-area: 6 / 2 / 7 / 4;
+}

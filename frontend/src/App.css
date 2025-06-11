@@ -1,0 +1,57 @@
+@import "components/css/Fonts.css";
+@import "components/css/Header.css";
+@import "components/css/Account.css";
+@import "components/css/Staff.css";
+@import "components/css/Equipment.css";
+@import "components/css/Auth.css";
+/*Общие настройки*/
+*{
+    margin: 0px;
+    padding: 0px;
+    filter: blur(0.3px);
+    text-shadow:
+      -0.5px -0.5px 0 red, /* Смещение красного */
+      0.5px 0.5px 0 blue; /* Смещение синего */
+    border-width: 0.25vw;
+    position: relative;
+    z-index: 0;
+    box-sizing: border-box;
+    color: #09FF00;
+    border-color: #09FF00;
+    font-size: 3vw;
+    font-family: 'FSE', monospace;
+    background-color: rgb(12, 12, 12);
+    height: 100%;
+    width: 100%;
+}
+*::placeholder{
+    color: #047b00;
+    text-align: center;
+    text-shadow: none;
+}
+/*Для всех кнопок*/
+button, input{
+
+    display: inline-block;
+    color: #09FF00;
+    border-color: #09FF00;
+    background-color: rgb(5, 90, 0)
+}
+/*Для всех картинок*/
+img{
+    filter: 
+    grayscale(100%)
+    contrast(3)
+    brightness(70%)
+    sepia(100%)
+    hue-rotate(90deg)
+    saturate(700%); 
+    image-rendering: pixelated;
+}
+/*Для body*/
+body {
+    background-color: rgb(12, 12, 12);
+    border-style:solid;
+    line-height: 0;
+    width: 100%;
+}

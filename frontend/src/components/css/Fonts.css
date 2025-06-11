@@ -1,0 +1,12 @@
+@font-face{
+    font-family: 'FSE';
+    src: url('../../assets/fonts/FSE.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Sixtyfour';
+    src: url('../../assets/fonts/Sixtyfour.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}

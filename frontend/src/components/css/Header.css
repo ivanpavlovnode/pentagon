@@ -1,0 +1,52 @@
+.header {
+    display: inline-flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+    align-items:start;
+    width: 100%;
+    height: 5vw;
+    z-index: 1;
+    line-height: normal;
+    border-style: solid;
+}
+.header * {
+    height: 4.5vw;
+    width: auto;
+    object-fit: contain;
+    font-family: 'FSE', monospace;
+}
+.header__p {
+    color: #09FF00;
+    display: inline-block;
+    padding-top: 0.7vw;
+}
+.header__button{
+    min-height: 4.5vw;
+    width: 20vw;
+    min-width: 20vw;
+    color: #09FF00;
+    display: inline-block;
+    border-color: #09FF00;
+    background-color: rgb(5, 90, 0)
+}
+.header__doubleButton{
+    font-family: 'FSE', monospace;
+    height: 7vw;
+    min-height: 30px;
+    width: 20vw;
+    min-width: 20vw;
+    color: #000000;
+    display: inline-block;
+    border-color: #09FF00;
+    background-color: rgb(5, 90, 0);
+    text-shadow: none;
+}
+/*спецоперации, солдаты, техника, личный кабинет, управление ядерным оружием*/
+.header__dropdown {
+    display: flex;
+    flex-direction: column;
+    width: 20vw;
+}
+.header__dropdown div{
+    height: 27vw;
+}
