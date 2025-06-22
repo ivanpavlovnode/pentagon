@@ -17,9 +17,10 @@ const authSubmit = async () =>{
     {
         setTitleText('FETCHING');
         try{
-            const res = await fetch(`${process.env.REACT_APP_URL}/auth`,
+            const data = await fetch(`${process.env.REACT_APP_URL}/auth`,
             {method:'POST', headers: {'Content-Type':'application/json'},
             body: JSON.stringify(authData)});
+            const res = await data.json();
             if(!res.userData || !res.token){
                 setTitleText(res.message);
                 setTimeout(() => setTitleText('FIREWALL') , 1000);
