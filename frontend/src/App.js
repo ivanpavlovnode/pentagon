@@ -15,7 +15,8 @@ function App(){
   const [isAuth, setIsAuth] = useState('nope');
 
   // Функция-переключатель окна аутентификации
-  const authentification = () => {
+  const authentication = () => {
+    sessionStorage.setItem("logline", "Authentication success");
     setIsAuth('hell yeah!');
   };
   // Функция-переключатель окна main
@@ -48,7 +49,8 @@ function App(){
 
 
   //Проверка аутентификации, выдача <del>в еб@ло</del> окна аутентификации
-  if(isAuth !== 'nope'){
+  if(isAuth !== 'nope' || sessionStorage.getItem("token") !== null)
+  {
     return(
       <div>
         <Header changeComponent={changeComponent}/>
@@ -59,7 +61,7 @@ function App(){
   else{
     return(
       <div>
-        <Auth authentification={authentification}/>
+        <Auth authentication={authentication}/>
       </div>
     )
   }

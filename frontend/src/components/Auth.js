@@ -26,21 +26,21 @@ const authSubmit = async () =>{
                 setTimeout(() => setTitleText('FIREWALL') , 1000);
             }
             else if(res.userData && res.token){
-                setTimeout(() => setTitleText(res.message) , 1000);
+                setTitleText(res.message);
                 sessionStorage.setItem('token', res.token);
-                sessionStorage.setItem('userData', res.userData);
-                props.authentification();
+                sessionStorage.setItem('userData', JSON.stringify(res.userData));
+                props.authentication();
             }
         }
         catch(err){
-            setTitleText('ERROR');
+            setTitleText('CL_ERROR');
             setTimeout(() => setTitleText('FIREWALL') , 1000); 
         }
     }
     else{
         setTitleText('EMPTY FIELD');
         setTimeout(() => setTitleText('FIREWALL') , 1000); 
-        }
+    }
 };
 
 return (
