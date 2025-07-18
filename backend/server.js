@@ -13,21 +13,7 @@ app.use(express.json());
 const port = process.env.PORT || 5000;
 
 //Настраиваем Multer
-const upload = multer({ //все что дальше по сути можно удалить
-  storage: multer.memoryStorage(), // Хранить в памяти для обработки
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB
-    files: 1 // Только 1 файл
-  },
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Invalid file type. Only images are allowed'));
-    }
-  }
-});
+const upload = multer({storage: multer.memoryStorage()}); 
 // Подключаемся к Supabase
 const db = createClient(
   process.env.SUPABASE_URL,
@@ -37,7 +23,8 @@ const db = createClient(
 const checkToken = (req) => {
     const token = req.headers.authorization?.split(' ')[1];
     if(!token) throw new Error();
-    return jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    return decoded.id;
   };
 
 //Маршрут аутентификации
@@ -76,47 +63,46 @@ app.post('/auth', async (req, res) =>
   }
 });
 
-//Смена фото профиля
-/* app.get('/avatars', (req, res) => {
-  checkToken()
-  const id = req.body;
-  try {
-    checkToken();
-    const
-    res.json();
-  }
-  catch {
-    res.json({ message: 'INVALID AUTH!'});
-  }
-}); */
+app.get('/avatars', async (req, res) => {
+  try{
+    const user_id = checkToken(req);
+    if(!user_id) return res.status(401).json({ error: 'Токен невалиден' });
+    const { data, error } = await db.storage
+     .from('avatars')
+     .download(`avatars/${user_id}.jpg`);
+    if (error) throw error
 
-app.post('/avatars',
-  upload.single('avatar'),
-  async (req, res) => {
-    try{
-      const user_id = checkToken(req);
-      if (!req.file) {
-        return res.status(400).json({ error: 'Файл не загружен' });
-      }
-      const file = req.file;
-      const { error } = await supabase.storage
-      .from('avatars')
-      .upload(`avatars/${user_id}.jpg`, file.buffer,
-        {upsert: true, //upsert = true разрешает перезапись
-        contentType: file.mimetype});
+    const arrayBuffer = await data.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
 
-      if (error) {
-        console.error('Supabase Error:', error); // Логируем детали
-        return res.status(500).json({ 
-        error: 'Ошибка загрузки файла'});
-      }
-      res.status(200).json({ message: 'Аватар обновлён!' });
-    }
-    catch (err) {
-      res.status(400).json({ error: 'Uploading problem!'});
-    }
+    res.type('jpg'); // Устанавливаем Content-Type: image/jpeg
+    res.set('Cache-Control', 'public, max-age=31536000');
+    res.send(buffer);
+  }  
+  catch(err) {
+   res.status(500).json({ error: 'Ошибка сервера' });
   }
-);
+});
+app.post('/avatars', upload.single('avatar'), async (req, res) => {
+  try{
+    const user_id = checkToken(req);
+    if(!user_id) return res.status(401).json({ error: 'Токен невалиден' });
+    if (!req.file) return res.status(400).json({ error: 'Файл отсутствует' });
+    const { error } = await db.storage
+    .from('avatars')
+    .upload(`avatars/${user_id}.jpg`, req.file.buffer,
+    {upsert: true, //upsert = true разрешает перезапись
+    contentType: req.file.mimetype});
+    if (error) {
+      return res.status(500).json({ 
+      error: 'Ошибка сохранения файла'});
+    }
+    return res.status(200).json({ message: 'Аватар обновлён' });
+  }
+  catch (err){
+    return res.status(500).json({ error: 'Ошибка сервера'});
+  }
+});
 
 // Запускаем сервер
 app.listen(port, () => {
