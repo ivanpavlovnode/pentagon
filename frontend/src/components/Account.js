@@ -11,7 +11,8 @@ useEffect(() => {
         let url;
         try {
             const data = await fetch(`${process.env.REACT_APP_URL}/avatars`, {
-                headers: {'Authorization': `Bearer ${token}`}});
+                headers: {'Authorization': `Bearer ${token}`},
+                cache: 'no-store'});
             if(!data.ok) throw new Error('Ошибка получения аватара');
             const blob = await data.blob();
             // Создаем Blob URL
@@ -42,6 +43,7 @@ const photoChange = async (event) => {
         const response = await fetch(`${process.env.REACT_APP_URL}/avatars`,{
         method:'POST',
         headers: {'Authorization': `Bearer ${token}`},
+        cache: 'no-store',
         body: formData});
             
         const data = await response.json();
