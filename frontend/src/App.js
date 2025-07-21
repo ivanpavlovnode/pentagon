@@ -5,7 +5,7 @@ import Account from './components/Account';
 import Staff from './components/Staff';
 import Operations from './components/Operations';
 import Nuclear from './components/Nuclear';
-import Equipment from './components/Equipment';
+import Messenger from './components/Messenger';
 import Auth from './components/Auth';
 
 function App(){
@@ -34,9 +34,9 @@ function App(){
   {
     displayedComponent = <Staff />;
   } 
-  else if(currentComponent === 'equipment') 
+  else if(currentComponent === 'messenger') 
   {
-    displayedComponent = <Equipment />;
+    displayedComponent = <Messenger />;
   }
   else if(currentComponent === 'operations') 
   {

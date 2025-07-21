@@ -22,7 +22,7 @@ return (
                 <button className="header__button"
                 onClick = {() => {props.changeComponent('staff'); setTitle('Staff');}}>Staff</button>
                 <button className="header__button"
-                onClick = {() => {props.changeComponent('equipment'); setTitle('Equipment');}}>Equipment</button>
+                onClick = {() => {props.changeComponent('messenger'); setTitle('Messenger');}}>Messenger</button>
                 <button className="header__button"
                 onClick = {() => {props.changeComponent('operations'); setTitle('Operations');}}>Operations</button>
                 <button className="header__doubleButton"

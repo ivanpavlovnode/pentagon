@@ -1,6 +1,6 @@
 import { FOCUSABLE_SELECTOR } from '@testing-library/user-event/dist/utils';
 import React from 'react';
-function Equipment() {
+function Messenger() {
 return (
     <main>
     
@@ -8,4 +8,4 @@ return (
     );
 }
 
-export default Equipment;
+export default Messenger;

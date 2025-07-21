@@ -132,7 +132,7 @@ app.get('/staff', async (req, res) => {
       try{
         const { data, error } = await db
         .from('Staff')
-        .select('id, full_name, call_name, rank, div, status, service_record')
+        .select('id, access_level, full_name, call_name, rank, div, status, service_record')
         .order('id', { ascending: true });
         if(error) return res.status(500).json({ error: 'Database error' });
         res.json(data);

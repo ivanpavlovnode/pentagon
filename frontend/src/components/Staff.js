@@ -42,6 +42,7 @@ return (
                     <div>
                     <p></p>     
                     <p>{person.full_name} </p>
+                    <p>{' Access level: ' + person.access_level} </p>
                     <p>{' Rank: ' + person.rank} </p>
                     <p>{' Div: ' + person.div} </p>
                     </div>

@@ -6,8 +6,8 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-auto-rows:auto;
-    grid-column-gap: 5px;
-    grid-row-gap: 5px;
+    grid-column-gap: 0px;
+    grid-row-gap: 0px;
     z-index: 0;
 
 }
@@ -20,17 +20,17 @@
 .staffCard{
     display: grid;
     grid-template-columns: 1fr;
-    grid-template-rows: repeat(7, 1fr);
+    grid-template-rows: repeat(6, 1fr);
     grid-column-gap: 0px;
     grid-row-gap: 0px;
 
 }
 .staffCard img{
-    grid-area: 1 / 1 / 5 / 2;
+    grid-area: 1 / 1 / 4 / 2;
     object-fit: contain;
 }
 .staffCard div{
-    grid-area: 5 / 1 / 7 / 2;
+    grid-area: 4 / 1 / 6 / 2;
     line-height: 2;
     display: flex;
     flex-direction: column;
@@ -41,5 +41,5 @@
     font-size: 2.5vw;
 }
 .staffCard button{
-    grid-area: 7 / 1 / 8 / 2;
+    grid-area: 6 / 1 / 7 / 2;
 }
