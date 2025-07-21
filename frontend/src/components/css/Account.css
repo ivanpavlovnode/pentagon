@@ -16,6 +16,7 @@
     border-style: solid;
     text-align: center;
     line-height:1.5;
+    height: 100%;
 }
 button{
     position: relative;
@@ -31,6 +32,7 @@ button{
 .account__photo img{ 
     opacity: 0.7;
     image-rendering: pixelated;
+    object-fit: cover;
 }
 .account__photoChange { 
     grid-area: 8 / 1 / 9 / 4;

@@ -94,8 +94,4 @@ return (
     </main>
   );
 }
-
-
-
-
 export default Account;

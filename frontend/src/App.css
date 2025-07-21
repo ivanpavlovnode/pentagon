@@ -21,7 +21,6 @@
     font-size: 3vw;
     font-family: 'FSE', monospace;
     background-color: rgb(12, 12, 12);
-    height: 100%;
     width: 100%;
 }
 *::placeholder{

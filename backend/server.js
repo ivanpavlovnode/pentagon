@@ -62,7 +62,7 @@ app.post('/auth', async (req, res) =>
     res.json({message: 'SERVER_ERROR'});
   }
 });
-
+//Замена и получение аватара
 app.get('/avatars', async (req, res) => {
   try{
     const user_id = checkToken(req);
@@ -80,7 +80,27 @@ app.get('/avatars', async (req, res) => {
     res.send(buffer);
   }  
   catch(err) {
-   res.status(500).json({ error: 'Ошибка сервера' });
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+//Эндпоинт для заполнения вкладки Staff аватарами
+//Дает конкретный аватар по id
+app.get('/avatars/byid', async (req, res) => {
+  try{
+    const user_id = checkToken(req);
+    const asked_id = req.headers['asked_id'];
+    if(!user_id) return res.status(401).json({ error: 'Токен невалиден' });
+    const { data, error } = await db.storage
+     .from('avatars')
+     .download(`avatars/${asked_id}.jpg`);
+    if (error) throw error
+    const arrayBuffer = await data.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    res.type('jpg'); // Устанавливаем Content-Type: image/jpeg
+    res.send(buffer);
+  }  
+  catch(err) {
+    res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
 app.post('/avatars', upload.single('avatar'), async (req, res) => {
@@ -104,6 +124,29 @@ app.post('/avatars', upload.single('avatar'), async (req, res) => {
   }
 });
 
+//Список персонала 
+app.get('/staff', async (req, res) => {
+  try{
+    const user_id = checkToken(req);
+    if(user_id) {
+      try{
+        const { data, error } = await db
+        .from('Staff')
+        .select('id, full_name, call_name, rank, div, status, service_record')
+        .order('id', { ascending: true });
+        if(error) return res.status(500).json({ error: 'Database error' });
+        res.json(data);
+      }
+      catch (err){
+        res.status(500).json({ error: 'Ошибка сервера' });
+      }
+    }
+    else throw new Error();
+  }
+  catch{
+    res.status(401).json({ error: 'Ошибка аутентификации' });
+  }
+});
 // Запускаем сервер
 app.listen(port, () => {
   console.log(`Launched on port: ${port}`);
