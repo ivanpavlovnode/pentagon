@@ -13,7 +13,7 @@
 }
 .staff *{
     border-style: solid;
-    border-width: 2px;
+
     text-align: center;
     height: 100%;
 }
@@ -42,4 +42,22 @@
 }
 .staffCard button{
     grid-area: 6 / 1 / 7 / 2;
+}
+.sortButton{
+    height: 100%;
+}
+.sortLine{
+    display: flex;
+    flex-direction: row;
+    height: 7vh;
+    min-height: 70px;
+    margin: 10px 0;
+}
+.sortLine p{
+    display: inline-block;
+    text-align: center;
+    padding-top: 30px;
+    border-style: solid;
+    height: 100%;
+
 }

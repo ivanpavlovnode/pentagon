@@ -2,7 +2,7 @@ import { FOCUSABLE_SELECTOR } from '@testing-library/user-event/dist/utils';
 import React, {useState, useEffect} from 'react';
 function Staff() {
 const [staff, setStaff] = useState([]);
-const [avatars, setAvatars] = useState([]);
+const [sort, setSort] = useState('id');
 useEffect(() => {
 const fetchStaff = async() => {
         const token = sessionStorage.getItem('token');
@@ -12,7 +12,6 @@ const fetchStaff = async() => {
                 cache: 'no-store'});
             if(!res.ok) throw new Error('Ошибка получения персонала');
             const data = await res.json();
-            setStaff(data);
 
             const avatarPromises = data.map(person => 
                 fetch(`${process.env.REACT_APP_URL}/avatars/byid`, {
@@ -24,9 +23,11 @@ const fetchStaff = async() => {
             );
             const blobs = await Promise.all(avatarPromises);
             const urls = blobs.map(blob => URL.createObjectURL(blob));
-            setAvatars(urls);
-            console.log(urls);
-
+            const joinedData = data.map((person, index) => ({
+                ...person,
+                url: urls[index]
+            }));
+            setStaff(joinedData);
         }
         catch(err){
             console.error(err);
@@ -34,22 +35,47 @@ const fetchStaff = async() => {
     }
     fetchStaff();
 }, []);
+useEffect(() => {
+    const sorted = [...staff];
+    switch(sort){
+        case 'id':
+            sorted.sort((a, b) => a.id - b.id);
+            break;
+        case 'name':
+            sorted.sort((a, b) => a.full_name.localeCompare(b.full_name));
+            break;
+        case 'access_level':
+            sorted.sort((a, b) => b.access_level - a.access_level);
+            break;
+        default:
+            break;
+    }
+    setStaff(sorted);
+}, [sort]);
 return (
-    <main className = "staff">
-        {staff.map((person, index) => (
-            <div key = {person.id} className = "staffCard">
-                {avatars[index] && (<img src = {avatars[index]} />)}
-                    <div>
-                    <p></p>     
-                    <p>{person.full_name} </p>
-                    <p>{' Access level: ' + person.access_level} </p>
-                    <p>{' Rank: ' + person.rank} </p>
-                    <p>{' Div: ' + person.div} </p>
-                    </div>
-                <button>DETAILS</button>
+    <div>
+        <div className = "sortLine">
+            <p>SORT BY:</p>
+            <button onClick = { () => setSort('id')} className = "sortButton">ID</button>
+            <button onClick = { () => setSort('name')} className = "sortButton">NAME</button>
+            <button onClick = { () => setSort('access_level')} className = "sortButton">ACCESS LEVEL</button>
         </div>
-        ))}
-    </main>
+        <main className = "staff">
+            {staff.map(person => (
+                <div key = {person.id} className = "staffCard">
+                    {person.url && (<img src = {person.url} />)}
+                        <div>
+                        <p></p>     
+                        <p>{person.full_name} </p>
+                        <p>{' Access level: ' + person.access_level} </p>
+                        <p>{' Rank: ' + person.rank} </p>
+                        <p>{' Div: ' + person.div} </p>
+                        </div>
+                    <button>DETAILS</button>
+            </div>
+            ))}
+        </main>
+    </div>
     );
 }
 export default Staff;
