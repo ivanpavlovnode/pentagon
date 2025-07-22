@@ -74,7 +74,7 @@ return (
         <div className = "account__photo"><img src = {photo} alt = "CHAD"></img></div>
         <div className = "account__photoChange">
             {/*Кнопка, которая вызывает input*/}
-            <button onClick = {() => photoChangeClick}>Change Photo (.jpg)</button>
+            <button onClick = {photoChangeClick}>Change Photo (.jpg)</button>
             <input
             type = "file"
             id = "commander_photo"
