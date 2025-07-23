@@ -8,14 +8,14 @@ function Staff() {
     const fetchStaff = async() => {
             const token = sessionStorage.getItem('token');
             try {
-                const res = await fetch(`${process.env.REACT_APP_URL}/staff`, {
+                const res = await fetch(`${process.env.REACT_APP_URL}/api/staff`, {
                     headers: {'Authorization': `Bearer ${token}`},
                     cache: 'no-store'});
                 if(!res.ok) throw new Error('Ошибка получения персонала');
                 const data = await res.json();
 
                 const avatarPromises = data.map(person => 
-                    fetch(`${process.env.REACT_APP_URL}/avatars/byid`, {
+                    fetch(`${process.env.REACT_APP_URL}/api/avatars/byid`, {
                         headers: {
                         'Authorization': `Bearer ${token}`,
                         'Asked_id': person.id },

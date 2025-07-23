@@ -85,7 +85,7 @@ app.get('/avatars', async (req, res) => {
 });
 //Эндпоинт для заполнения вкладки Staff аватарами
 //Дает конкретный аватар по id
-app.get('/avatars/byid', async (req, res) => {
+app.get('/api/avatars/byid', async (req, res) => {
   try{
     const user_id = checkToken(req);
     const asked_id = req.headers['asked_id'];
@@ -125,7 +125,7 @@ app.post('/avatars', upload.single('avatar'), async (req, res) => {
 });
 
 //Список персонала 
-app.get('/staff', async (req, res) => {
+app.get('/api/staff', async (req, res) => {
   try{
     const user_id = checkToken(req);
     if(user_id) {
@@ -145,6 +145,28 @@ app.get('/staff', async (req, res) => {
   }
   catch{
     res.status(401).json({ error: 'Ошибка аутентификации' });
+  }
+});
+app.get('/api/messenger', async (req, res) => {
+  try{
+    const user_id = checkToken(req);
+    if(!user_id) res.status(401).json({ error: 'Ошибка аутентификации' });
+    try{
+      const { data, error } = await db
+        .from('Messenger')
+        .select('*')
+        .or(`sender.eq.${user_id}, getter.eq.${user_id}`)
+        .order('id', { ascending: true });
+      if(error) return res.status(500).json({ error: 'Database error' });
+      res.json(data);
+    }
+    catch (err){
+      res.status(500).json({ error: 'Ошибка сервера' });
+    }
+
+  }
+  catch{
+    res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
 // Запускаем сервер

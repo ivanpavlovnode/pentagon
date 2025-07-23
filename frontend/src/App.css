@@ -2,7 +2,7 @@
 @import "components/css/Header.css";
 @import "components/css/Account.css";
 @import "components/css/Staff.css";
-@import "components/css/Equipment.css";
+@import "components/css/Messenger.css";
 @import "components/css/Auth.css";
 /*Общие настройки*/
 *{
@@ -22,6 +22,11 @@
     font-family: 'FSE', monospace;
     background-color: rgb(12, 12, 12);
     width: 100%;
+}
+@media screen and (max-width: 1080px) and (min-height: 800px){
+    *{
+    font-size: 3.5vw;
+  }
 }
 *::placeholder{
     color: #047b00;

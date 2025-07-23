@@ -16,7 +16,7 @@
 }
 @media screen and (max-width: 1080px) and (min-height: 800px){
   .auth *{
-    font-size: 10vw; /* Уменьшаем размер шрифта на маленьких экранах */
+    font-size: 10vw;
   }
 }
 .auth__title{

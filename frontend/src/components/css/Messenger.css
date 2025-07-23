@@ -1,0 +1,51 @@
+@import '../../../node_modules/bootstrap/dist/css/bootstrap.min.css';
+
+.messenger {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(10, 1fr);
+    grid-column-gap: 0px;
+    grid-row-gap: 0px;
+    height: 85vh;
+    width: 100%
+}
+.messenger * {
+    border-style: solid;
+    height: 100%;
+    width: 100%;
+    text-align: center;
+    line-height: 2;
+}
+input{
+    text-align: center;
+}
+#messenger_new {
+    grid-area: 1 / 1 / 2 / 2;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    line-height: 2.5;
+}
+#messenger_messages {
+    grid-area: 2 / 1 / 6 / 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+}
+#messenger_search {grid-area: 6 / 1 / 7 / 2;}
+
+#messenger_results {
+    grid-area: 7 / 1 / 11 / 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: scroll;
+}
+#messenger_results::-webkit-scrollbar {
+  display: none; /* Для WebKit */
+}
+
+#messenger_text {grid-area: 1 / 2 / 2 / 4;}
+#messenger_send {grid-area: 1 / 4 / 2 / 5;}
+
+#messenger_history {grid-area: 2 / 2 / 11 / 5;}
