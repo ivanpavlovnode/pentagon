@@ -15,10 +15,12 @@
     object-fit: contain;
     font-family: 'FSE', monospace;
 }
+
 .header__p {
     color: #09FF00;
     display: inline-block;
     padding-top: 0.7vw;
+    display: flex;
 }
 .header__button{
     min-height: 4.5vw;
@@ -29,7 +31,7 @@
     border-color: #09FF00;
     background-color: rgb(5, 90, 0)
 }
-.header__doubleButton{
+#header__doubleButton{
     font-family: 'FSE', monospace;
     height: 7vw;
     min-height: 30px;
@@ -41,12 +43,47 @@
     background-color: rgb(5, 90, 0);
     text-shadow: none;
 }
-/*спецоперации, солдаты, техника, личный кабинет, управление ядерным оружием*/
 .header__dropdown {
     display: flex;
     flex-direction: column;
     width: 20vw;
 }
-.header__dropdown div{
-    height: 27vw;
+.header__dropdown button{
+    min-height: 4.5vw;
+    width: 20vw;
+}
+@media screen and (max-width: 1080px) and (min-height: 800px){
+    .header{
+        height: 10vw;
+    }
+    .header * {
+        height: 9.5vw;
+        width: auto;
+        object-fit: contain;
+        font-family: 'FSE', monospace;
+        line-height: 2.5;
+    }
+    #header__doubleButton{
+        height: 14vw;
+        line-height: 1.5;
+    }
+    .header__dropdown {
+        display: flex;
+        flex-direction: column;
+        width: 20vw;
+    }
+    .header__dropdown button{
+        height: 9.5vw;
+        min-height: 9.5vw;
+        width: 20vw;
+    }
+    .header__button{
+        min-height: 9.5vw;
+        width: 20vw;
+        min-width: 20vw;
+        color: #09FF00;
+        display: inline-block;
+        border-color: #09FF00;
+        background-color: rgb(5, 90, 0)
+    }
 }

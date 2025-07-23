@@ -27,7 +27,7 @@ return (
                 onClick = {() => {props.changeComponent('operations'); setTitle('Operations');}}>Operations</button>
                 <button className="header__button"
                 onClick = {() => {sessionStorage.clear(); window.location.reload();}}>Log out</button>
-                <button className="header__doubleButton"
+                <button id="header__doubleButton"
                 onClick = {() => {props.changeComponent('nuclear'); setTitle('Nuclear Weapon');}}>Nuclear Weapon</button>
                 </div>
             )}
