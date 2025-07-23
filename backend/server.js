@@ -8,7 +8,14 @@ const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
 //Подключение приложения
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:3000',  // Для разработки на компе
+    'http://192.168.1.17:3000',  // Для телефона (замени на свой IP)
+    'http://192.168.1.84:3000'
+  ],
+  credentials: true // Если используешь куки/авторизацию
+}));
 app.use(express.json());
 const port = process.env.PORT || 5000;
 

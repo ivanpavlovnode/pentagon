@@ -38,11 +38,16 @@ input{
     grid-area: 7 / 1 / 11 / 2;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
     overflow: scroll;
 }
+#messenger_results div{
+    max-height: 10vw;
+}
+#messenger_results div button{
+    line-height: 1;
+}
 #messenger_results::-webkit-scrollbar {
-  display: none; /* Для WebKit */
+  display: none;
 }
 
 #messenger_text {grid-area: 1 / 2 / 2 / 4;}

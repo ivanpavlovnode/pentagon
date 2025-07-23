@@ -1,5 +1,5 @@
 .auth{
-    height: 100%;
+    height: 95vh;
     width: 100%;
     line-height: normal;
     z-index: 0;
@@ -8,11 +8,13 @@
     grid-template-rows: repeat(8, 1fr);
     grid-column-gap: 0px;
     grid-row-gap: 10px;
-    overflow:hidden
+    overflow:hidden;
+    border-style: none;
 }
 .auth *{
     font-size: 4vw;
     text-align: center;
+    
 }
 @media screen and (max-width: 1080px) and (min-height: 800px){
   .auth *{
