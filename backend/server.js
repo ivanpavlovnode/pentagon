@@ -1,24 +1,40 @@
 require('dotenv').config();
 const express = require('express');
+const http = require('http');
 const multer = require('multer');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
+const WebSocket = require ('ws');
 //Подключение приложения
 const app = express();
+const server = http.createServer(app);
 app.use(cors({
   origin: [
-    'http://localhost:3000',  // Для разработки на компе
-    'http://192.168.1.17:3000',  // Для телефона (замени на свой IP)
+    'http://localhost:3000',
+    'http://192.168.1.17:3000',
     'http://192.168.1.84:3000'
   ],
-  credentials: true // Если используешь куки/авторизацию
+  credentials: true 
 }));
 app.use(express.json());
+app.get('/api/test', (req, res) => {
+  res.json({ status: 'ok' });
+});
 const port = process.env.PORT || 5000;
-
+const wss = new WebSocket.Server({noServer: true});
+const websocketConnections = new Map();
+server.on('upgrade', (request, socket, head) => {
+  if (request.url.startsWith('/messenger'))
+  {
+    wss.handleUpgrade(request, socket, head, (ws) => {
+      wss.emit('connection', ws, request);
+    });
+  }
+  else {socket.destroy()};
+});
 //Настраиваем Multer
 const upload = multer({storage: multer.memoryStorage()}); 
 // Подключаемся к Supabase
@@ -176,7 +192,58 @@ app.get('/api/messenger', async (req, res) => {
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
-// Запускаем сервер
-app.listen(port, () => {
-  console.log(`Launched on port: ${port}`);
+
+//WEBSOCKET SERVER WEBSOCKET SERVER WEBSOCKET SERVER
+//WEBSOCKET SERVER WEBSOCKET SERVER WEBSOCKET SERVER
+//WEBSOCKET SERVER WEBSOCKET SERVER WEBSOCKET SERVER
+function notifyUsers(message){
+  const participants = [message.sender, message.getter];
+  participants.forEach(userId => {
+    try{
+      const neededSocket = websocketConnections.get(userId);
+      if (neededSocket && neededSocket.readyState === WebSocket.OPEN) neededSocket.send(JSON.stringify(message));
+      else console.warn(`Socket not found or closed for user: ${id}`);
+    }
+    catch (err){
+      console.error(`Notify error for user ${userId}:`, err);
+    };
+  });
+}
+
+wss.on('connection', (socket, request) => {
+  const token = new URL(request.url, 'ws://localhost').searchParams.get('token');
+  const user_id = jwt.verify(token, process.env.JWT_SECRET).id;
+  if(!user_id) {
+    socket.close(1008, 'Invalid token');
+    return;
+  }
+  websocketConnections.set(user_id, socket);
+  socket.on('message', async (data) => {
+    try{
+      const message = JSON.parse(data);
+      const{data: insertedData, error} = await db
+      .from('Messenger')
+      .insert([
+        {
+          sender: message.sender,
+          getter: message.getter,
+          text: message.text
+        }
+      ])
+      .select();
+      if (error) throw error;
+      const insertedMessage = insertedData[0];
+      notifyUsers(insertedMessage);
+    }
+    catch(error){
+      console.error('Ошибка:', error);
+      socket.send(JSON.stringify({ error: 'Не удалось отправить сообщение' }));
+    }
+  })
+  socket.on('close', () => {
+    websocketConnections.delete(user_id);
+  });
 });
+
+// Запускаем сервер
+server.listen(port);

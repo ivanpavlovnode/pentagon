@@ -1,5 +1,12 @@
 @import '../../../node_modules/bootstrap/dist/css/bootstrap.min.css';
-
+.messenger_loading{
+    width: 100%;
+    height: 90vh;
+    border-style: none;
+    text-align: center;
+    line-height: 4;
+    font-size: 10vw;
+}
 .messenger {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -14,7 +21,10 @@
     height: 100%;
     width: 100%;
     text-align: center;
-    line-height: 2;
+    line-height: 1;
+}
+.messenger *::-webkit-scrollbar{
+  display: none;
 }
 input{
     text-align: center;
@@ -30,7 +40,8 @@ input{
     grid-area: 2 / 1 / 6 / 2;
     display: flex;
     flex-direction: column;
-    justify-content: space-around;
+    justify-content:flex-start;
+    overflow: scroll;
 }
 #messenger_search {grid-area: 6 / 1 / 7 / 2;}
 
@@ -40,17 +51,65 @@ input{
     flex-direction: column;
     overflow: scroll;
 }
-#messenger_results div{
-    max-height: 10vw;
+#messenger_results div, #messenger_messages div{
+    max-height: 9vw;
+    min-height: 9vw;
 }
-#messenger_results div button{
+#messenger_results div button, #messenger_messages div button{
     line-height: 1;
-}
-#messenger_results::-webkit-scrollbar {
-  display: none;
 }
 
 #messenger_text {grid-area: 1 / 2 / 2 / 4;}
 #messenger_send {grid-area: 1 / 4 / 2 / 5;}
+#messenger_history {
+    grid-area: 2 / 2 / 11 / 5;
+    display: flex;
+    flex-direction: column;
+    overflow: scroll;
+}
+.messenger_history_message{
+    display: flex;
+    flex-direction: column;
+    word-wrap: break-word;
+    text-align: left;
+    padding: 2vw;
+    height: min-content;
+    font-size: 2vw;
+}
+.messenger_history_name{
+    display: flex;
+    flex-direction: row;
+    font-size: 2.5vw;
+    text-align: left;
+    border-style: none;
+    line-height: 2;
+}
+.messenger_history_name img{
+    object-fit: cover;
+    height: 5vw;
+    width: 5vw;
 
-#messenger_history {grid-area: 2 / 2 / 11 / 5;}
+    margin-right: 2vw;
+}
+@media screen and (max-width: 1080px) and (min-height: 800px){
+    .messenger_history_message{
+        display: flex;
+        flex-direction: column;
+        word-wrap: break-word;
+        font-size: 4vw;
+    }
+    .messenger_history_name{
+        display: flex;
+        flex-direction: row;
+        font-size: 5vw;
+        text-align: left;
+        border-style: none;
+    }
+    .messenger_history_name img{
+        object-fit: cover;
+        height: 10vw;
+        width: 10vw;
+        border-style:groove;
+        margin-right: 2vw;
+    }
+}
