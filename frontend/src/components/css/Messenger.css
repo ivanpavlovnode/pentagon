@@ -74,23 +74,37 @@ input{
     text-align: left;
     padding: 2vw;
     height: min-content;
-    font-size: 2vw;
+    font-size: 3vw;
 }
 .messenger_history_name{
     display: flex;
     flex-direction: row;
-    font-size: 2.5vw;
+    font-size: 3.5vw;
     text-align: left;
     border-style: none;
-    line-height: 2;
+    line-height: 1.5;
 }
 .messenger_history_name img{
     object-fit: cover;
     height: 5vw;
     width: 5vw;
-
+    border-style:groove;
     margin-right: 2vw;
 }
+.messenger_history_message_notmy{
+    display: flex;
+    flex-direction: column;
+    word-wrap: break-word;
+    text-align: left;
+    padding: 2vw;
+    height: min-content;
+    font-size: 3vw;
+    background-color: rgb(5, 90, 0);
+}
+.messenger_history_message_notmy * {
+    background-color: rgb(5, 90, 0);
+}
+
 @media screen and (max-width: 1080px) and (min-height: 800px){
     .messenger_history_message{
         display: flex;
@@ -104,6 +118,7 @@ input{
         font-size: 5vw;
         text-align: left;
         border-style: none;
+        line-height: 2;
     }
     .messenger_history_name img{
         object-fit: cover;
@@ -111,5 +126,15 @@ input{
         width: 10vw;
         border-style:groove;
         margin-right: 2vw;
+    }
+    .messenger_history_message_notmy{
+        display: flex;
+        flex-direction: column;
+        word-wrap: break-word;
+        font-size: 4vw;
+        background-color: rgb(5, 90, 0);
+    }
+    .messenger_history_message_notmy * {
+        background-color: rgb(5, 90, 0);
     }
 }

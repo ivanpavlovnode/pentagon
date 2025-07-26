@@ -11,6 +11,7 @@ function Messenger() {
     const [socket, setSocket] = useState();
     const token = sessionStorage.getItem('token');
     
+    //Инициализация userData, socket, получение сообщений при загрузке
     useEffect(() => {
         setUserData(JSON.parse(sessionStorage.getItem('userData')));
         setSocket(new WebSocket(`ws://192.168.1.84:5000/messenger?token=${token}`));
@@ -68,7 +69,7 @@ function Messenger() {
             .includes(searchText.toLowerCase()));
             setResult(filteredStaff);
     }, [searchText]);
-    
+    //Вызывается кнопкой Send, отправка сообщения
     function sendMessage(){
         if(chosenContact === null || typedMessage === '') return;
         const message = {
@@ -79,7 +80,7 @@ function Messenger() {
         socket.send(JSON.stringify(message));
         setTypedMessage('');
     }
-
+    //Подписка и отписка на сообщения с сокета
     useEffect(() => {
         if (!socket) return;
 
@@ -101,8 +102,8 @@ function Messenger() {
             socket.removeEventListener('message', handleMessage);
         };
     }, [socket]);
-
-    if(staff[0] !== undefined && socket){
+    //Показывает компонент только когда сокет есть и контакты загружены
+    if(staff[0] !== undefined && socket && messages != []){
         return (
             <main className = "messenger">
                 <div id = "messenger_new"> New messages </div>
@@ -148,15 +149,18 @@ function Messenger() {
                         {messages
                         .sort((a, b) => b.id - a.id)
                         .filter(message => message.sender === chosenContact || message.getter === chosenContact)
-                        .map(message =>  (
-                        <div key = {message.id} className = "messenger_history_message">
-                            <div className = "messenger_history_name">
-                                <img src = {staff[message.sender - 1].url}/>
-                                {staff[message.sender - 1].full_name}
-                            </div>
-                            {message.text}
-                        </div>
-                    ))}
+                        .map(message => {
+                            const isMe = message.sender === userData.id;
+                            return (
+                                <div key = {message.id} className = {isMe ? "messenger_history_message" : "messenger_history_message_notmy"}>
+                                    <div className = "messenger_history_name">
+                                        <img src = {staff[message.sender - 1].url}/>
+                                        {staff[message.sender - 1].full_name}
+                                    </div>
+                                    {message.text}
+                                </div>
+                            );
+                        })}
                 </div>
             </main>
         );
