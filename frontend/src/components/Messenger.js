@@ -10,7 +10,7 @@ function Messenger() {
     const [userData, setUserData] = useState();
     const [socket, setSocket] = useState();
     const token = sessionStorage.getItem('token');
-    
+
     //Инициализация userData, socket, получение сообщений при загрузке
     useEffect(() => {
         setUserData(JSON.parse(sessionStorage.getItem('userData')));
@@ -102,6 +102,42 @@ function Messenger() {
             socket.removeEventListener('message', handleMessage);
         };
     }, [socket]);
+
+    /*Отметка сообщений как прочитанных при выборе контакта 
+    и при получении сообщения. В БД - через post запрос, 
+    локально - без подтверждения*/
+    useEffect(() => {
+        if(chosenContact !== null){
+            const setDelivered = async() => {
+                try {
+                    const res = await fetch(`${process.env.REACT_APP_URL}/api/messenger`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        cache: 'no-store',
+                        body: JSON.stringify({chosenContact})
+                    });
+                    if(!res.ok) {
+                        const errorData = await res.json();
+                        throw new Error(errorData.error || 'Неизвестная ошибка сервера');
+                    }
+                    setMessages(prev => prev.map(msg => {
+                        if(msg.getter === userData.id && msg.sender === chosenContact){
+                            return {...msg, delivered: true};
+                        }
+                        return msg;
+                    }));
+                }
+                catch(err){
+                    console.error(err + ' chosenContact: ' + chosenContact);
+                }
+            }
+            setDelivered();
+        }
+    }, [chosenContact, messages]);
+
     //Показывает компонент только когда сокет есть и контакты загружены
     if(staff[0] !== undefined && socket && messages != []){
         return (

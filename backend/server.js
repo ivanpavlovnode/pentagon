@@ -11,6 +11,7 @@ const WebSocket = require ('ws');
 //Подключение приложения
 const app = express();
 const server = http.createServer(app);
+//CORS для dev режима с двух портов, также для тестов с телефона
 app.use(cors({
   origin: [
     'http://localhost:3000',
@@ -20,10 +21,9 @@ app.use(cors({
   credentials: true 
 }));
 app.use(express.json());
-app.get('/api/test', (req, res) => {
-  res.json({ status: 'ok' });
-});
+//Читаем порт из env или 5000
 const port = process.env.PORT || 5000;
+//Создаем вебсокет сервер
 const wss = new WebSocket.Server({noServer: true});
 const websocketConnections = new Map();
 server.on('upgrade', (request, socket, head) => {
@@ -34,6 +34,10 @@ server.on('upgrade', (request, socket, head) => {
     });
   }
   else {socket.destroy()};
+});
+//Тестовый роут
+app.get('/api/test', (req, res) => {
+  res.json({ status: 'ok' });
 });
 //Настраиваем Multer
 const upload = multer({storage: multer.memoryStorage()}); 
@@ -49,7 +53,6 @@ const checkToken = (req) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     return decoded.id;
   };
-
 //Маршрут аутентификации
 app.post('/auth', async (req, res) =>
 {
@@ -126,6 +129,7 @@ app.get('/api/avatars/byid', async (req, res) => {
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
+//Установка аватара в Account
 app.post('/avatars', upload.single('avatar'), async (req, res) => {
   try{
     const user_id = checkToken(req);
@@ -146,7 +150,6 @@ app.post('/avatars', upload.single('avatar'), async (req, res) => {
     return res.status(500).json({ error: 'Ошибка сервера'});
   }
 });
-
 //Список персонала 
 app.get('/api/staff', async (req, res) => {
   try{
@@ -170,6 +173,7 @@ app.get('/api/staff', async (req, res) => {
     res.status(401).json({ error: 'Ошибка аутентификации' });
   }
 });
+//История собщений по айди пользователя
 app.get('/api/messenger', async (req, res) => {
   try{
     const user_id = checkToken(req);
@@ -192,10 +196,34 @@ app.get('/api/messenger', async (req, res) => {
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
+//Отметка Delivered для прочитанного сообщения
+app.post('/api/messenger', async (req, res) => {
+  try{
+    const user_id = checkToken(req);
+    if(!user_id) return res.status(401).json({ error: 'Токен невалиден' });
+    const { error } = await db
+    .from('Messenger')
+    .update({delivered: true})
+    .match({
+      sender: req.body.chosenContact,
+      getter: user_id,
+      delivered: false
+    });
+    if (error) {
+      return res.status(500).json({ 
+      error: 'Ошибка БД при отметке delivered'});
+    }
+    return res.status(200).json({ message: 'Сообщения отмечены delivered' });
+  }
+  catch (err){
+    return res.status(500).json({ error: 'Фатальная ошибка сервера, он чудом избежал смэрти!'});
+  }
+});
 
-//WEBSOCKET SERVER WEBSOCKET SERVER WEBSOCKET SERVER
-//WEBSOCKET SERVER WEBSOCKET SERVER WEBSOCKET SERVER
-//WEBSOCKET SERVER WEBSOCKET SERVER WEBSOCKET SERVER
+/*WEBSOCKET SERVER WEBSOCKET SERVER WEBSOCKET SERVER
+  WEBSOCKET SERVER WEBSOCKET SERVER WEBSOCKET SERVER
+  WEBSOCKET SERVER WEBSOCKET SERVER WEBSOCKET SERVER*/
+// Функция рассылки пришедшего сообщения через сокеты
 function notifyUsers(message){
   const participants = [message.sender, message.getter];
   participants.forEach(userId => {
@@ -209,15 +237,18 @@ function notifyUsers(message){
     };
   });
 }
-
+// Весь вебсокет для мессенджера
 wss.on('connection', (socket, request) => {
+  //Аутентификация для соединения
   const token = new URL(request.url, 'ws://localhost').searchParams.get('token');
   const user_id = jwt.verify(token, process.env.JWT_SECRET).id;
   if(!user_id) {
     socket.close(1008, 'Invalid token');
     return;
   }
+  //Добавляем пользователя в Map по айди
   websocketConnections.set(user_id, socket);
+  //Обработка пришедшего сообщения
   socket.on('message', async (data) => {
     try{
       const message = JSON.parse(data);
@@ -232,6 +263,7 @@ wss.on('connection', (socket, request) => {
       ])
       .select();
       if (error) throw error;
+      //Рассылка полученного от БД сообщения пользователям
       const insertedMessage = insertedData[0];
       notifyUsers(insertedMessage);
     }
