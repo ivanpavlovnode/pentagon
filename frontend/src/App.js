@@ -3,7 +3,7 @@ import './App.css';
 import Header from './components/Header';
 import Account from './components/Account';
 import Staff from './components/Staff';
-import Operations from './components/Operations';
+import Documents from './components/Documents';
 import Nuclear from './components/Nuclear';
 import Messenger from './components/Messenger';
 import Auth from './components/Auth';
@@ -38,9 +38,9 @@ function App(){
   {
     displayedComponent = <Messenger />;
   }
-  else if(currentComponent === 'operations') 
+  else if(currentComponent === 'documents') 
   {
-    displayedComponent = <Operations />;
+    displayedComponent = <Documents />;
   }
   else if(currentComponent === 'nuclear') 
   {

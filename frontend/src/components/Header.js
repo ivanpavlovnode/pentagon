@@ -24,7 +24,7 @@ return (
                 <button className="header__button"
                 onClick = {() => {props.changeComponent('messenger'); setTitle('Messenger');}}>Messenger</button>
                 <button className="header__button"
-                onClick = {() => {props.changeComponent('operations'); setTitle('Operations');}}>Operations</button>
+                onClick = {() => {props.changeComponent('documents'); setTitle('Documents');}}>Documents</button>
                 <button className="header__button"
                 onClick = {() => {sessionStorage.clear(); window.location.reload();}}>Log out</button>
                 <button id="header__doubleButton"
