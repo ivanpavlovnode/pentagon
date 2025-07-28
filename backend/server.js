@@ -239,42 +239,44 @@ function notifyUsers(message){
 }
 // Весь вебсокет для мессенджера
 wss.on('connection', (socket, request) => {
-  //Аутентификация для соединения
-  const token = new URL(request.url, 'ws://localhost').searchParams.get('token');
-  const user_id = jwt.verify(token, process.env.JWT_SECRET).id;
-  if(!user_id) {
+  try {
+    //Аутентификация для соединения
+    const token = new URL(request.url, 'ws://localhost').searchParams.get('token');
+    const user_id = jwt.verify(token, process.env.JWT_SECRET).id;
+    //Добавляем пользователя в Map по айди
+    websocketConnections.set(user_id, socket);
+    //Обработка пришедшего сообщения
+    socket.on('message', async (data) => {
+      try{
+        const message = JSON.parse(data);
+        const{data: insertedData, error} = await db
+        .from('Messenger')
+        .insert([
+          {
+            sender: message.sender,
+            getter: message.getter,
+            text: message.text
+          }
+        ])
+        .select();
+        if (error) throw error;
+        //Рассылка полученного от БД сообщения пользователям
+        const insertedMessage = insertedData[0];
+        notifyUsers(insertedMessage);
+      }
+      catch(error){
+        console.error('Ошибка:', error);
+        socket.send(JSON.stringify({ error: 'Не удалось отправить сообщение' }));
+      }
+    })
+    socket.on('close', () => {
+      websocketConnections.delete(user_id);
+    });
+  }
+  catch{
     socket.close(1008, 'Invalid token');
     return;
   }
-  //Добавляем пользователя в Map по айди
-  websocketConnections.set(user_id, socket);
-  //Обработка пришедшего сообщения
-  socket.on('message', async (data) => {
-    try{
-      const message = JSON.parse(data);
-      const{data: insertedData, error} = await db
-      .from('Messenger')
-      .insert([
-        {
-          sender: message.sender,
-          getter: message.getter,
-          text: message.text
-        }
-      ])
-      .select();
-      if (error) throw error;
-      //Рассылка полученного от БД сообщения пользователям
-      const insertedMessage = insertedData[0];
-      notifyUsers(insertedMessage);
-    }
-    catch(error){
-      console.error('Ошибка:', error);
-      socket.send(JSON.stringify({ error: 'Не удалось отправить сообщение' }));
-    }
-  })
-  socket.on('close', () => {
-    websocketConnections.delete(user_id);
-  });
 });
 
 // Запускаем сервер

@@ -57,19 +57,29 @@ function Documents() {
     //Состояния для локальных данных
     const [documents, setDocuments] = useState([]); //Все доступные документы
     const intervalRef = useRef(null);
+    const token = useRef(sessionStorage.getItem('token'));
 
-    const fetchFiles = async() => {
+    const fetchDocs = async(req, res) => {
         try{
-
+            const res = await fetch(`${process.env.REACT_APP_URL}/api/staff`, {
+                    headers: {'Authorization': `Bearer ${token}`},
+                    cache: 'no-store'});
+                if(!res.ok) throw new Error('Ошибка получения персонала');
+                const data = await res.json();
         }
-        catch{
-
+        catch(err){
+            console.error(err);
         }
     }
     useEffect(() => {
-        fetchFiles();
-
-
+        //Обновляем раз в 10 сек список доков для интерактивности
+        fetchDocs();
+        intervalRef.current = setInterval(fetchDocs, 10000);
+        return() => {
+            if(intervalRef.current){
+                clearInterval(intervalRef.current);
+            }
+        };
     }, []);
 
 
