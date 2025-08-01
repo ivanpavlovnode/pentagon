@@ -44,5 +44,11 @@ button{
 .account__recordTitle { grid-area: 3 / 4 / 4 / 11; }
 .account__recordText { 
     grid-area: 4 / 4 / 9 / 11; 
-    overflow: hidden;
+    overflow: scroll;
+    text-align: justify;
+    line-height: 1;
+    padding: 20px;
+    &::-webkit-scrollbar{
+        display: none;
+    }
 }

@@ -1,19 +1,19 @@
+
 .staff {
     width: 100%;
+    min-height: 600px;
     color: #09FF00;
     line-height: normal;
     font-size: 20vw;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    grid-auto-rows:auto;
+    grid-auto-rows: 1fr;
     grid-column-gap: 0px;
     grid-row-gap: 0px;
     z-index: 0;
-
 }
 .staff *{
     border-style: solid;
-
     text-align: center;
     height: 100%;
 }
@@ -31,7 +31,6 @@
 }
 .staffCard div{
     grid-area: 4 / 1 / 6 / 2;
-    line-height: 2;
     display: flex;
     flex-direction: column;
     line-height: 0.7;
@@ -64,16 +63,22 @@
 .detailsCard{
     display: flex;
     flex-direction: row;
+    min-height: 500px;
 }
 
 .detailsInfo{
+    margin-bottom: 30px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    & p{
+        line-height: 1;
+    }
 }
 .detailsCard img{
     object-fit: cover;
     height: 50vh;
+    min-height: 500px;
     width: 50vw;
 }
 .detailsCard div{
@@ -82,16 +87,23 @@
     flex-direction: column;
 }
 .detailsCardHeader{
-    text-align: center;
     border-style: solid;
+    display: flex;
+    align-items: center;
+    padding-left: 40%;
+    height: 10vh;
+    min-height: 50px;
 }
 #detailsCardRecord{
-    text-align: center;
+    text-align: justify;
+    text-justify: inter-word;
     line-height: 1.5;
+    padding: 20px;
 }
 #detailsCardButton{
     text-align: center;
-    line-height: 1.5;
+    height: 10vh;
+    min-height: 50px;
 }
 
 

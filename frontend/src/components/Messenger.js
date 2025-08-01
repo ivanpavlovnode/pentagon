@@ -1,5 +1,5 @@
 import { FOCUSABLE_SELECTOR } from '@testing-library/user-event/dist/utils';
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useMemo} from 'react';
 function Messenger() {
     const [staff, setStaff] = useState([]);
     const [searchText, setSearch] = useState('');
@@ -134,7 +134,15 @@ function Messenger() {
                     console.error(err + ' chosenContact: ' + chosenContact);
                 }
             }
-            setDelivered();
+            //Если есть непрочитанные - тогда отмечаем
+            if(
+                messages
+                .filter(msg => 
+                    msg.getter === userData.id && 
+                    msg.sender === chosenContact &&
+                    msg.delivered === false)
+                .length !== 0
+            ) setDelivered();
         }
     }, [chosenContact, messages]);
 
@@ -203,7 +211,7 @@ function Messenger() {
     }
     else{
         return (
-            <main className = "messenger_loading">LOADING MESSENGER</main>
+            <main className = "loadingWindow">LOADING MESSENGER</main>
         )
     }
 }

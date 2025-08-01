@@ -219,6 +219,63 @@ app.post('/api/messenger', async (req, res) => {
     return res.status(500).json({ error: 'Фатальная ошибка сервера, он чудом избежал смэрти!'});
   }
 });
+//Получение документов пользователя
+app.get('/api/documents', async (req, res) => {
+  try{
+    const user_id = checkToken(req);
+    if(!user_id) {
+      return res.status(401).json({ error: 'Ошибка аутентификации' });
+    }
+    try{
+      const { data: user_access_level, error: user_error } = await db
+        .from('Staff')
+        .select('access_level')
+        .eq('id', user_id)
+        .single();
+      if(user_error || !user_access_level) {
+        return res.status(500).json({ error: 'Database find user error' });
+      }
+      const { data: documents, error: docs_error } = await db
+        .from('Documents')
+        .select('id, creator, docdata, delivered, disposable, date')
+        .or(`recipient.eq.${user_id}, recipient.is.null, creator.eq.${user_id}`)
+        .or(`access_level.lte.${user_access_level.access_level}, access_level.is.null`)
+        .order('id', { ascending: false });
+
+      if(docs_error) return res.status(500).json({ error: 'Database find doc error' });
+      return res.json(documents);
+    }
+    catch (err){
+      return res.status(500).json({ error: 'Database fatal error CAUGHT' });
+    }
+  }
+  catch{
+    return res.status(500).json({ error: 'SERVER FATAL ERROR' });
+  }
+});
+//Отправка нового документа на сервер
+app.post('/api/messenger', async (req, res) => {
+  try{
+    const user_id = checkToken(req);
+    if(!user_id) return res.status(401).json({ error: 'Токен невалиден' });
+    const { error } = await db
+    .from('Messenger')
+    .update({delivered: true})
+    .match({
+      sender: req.body.chosenContact,
+      getter: user_id,
+      delivered: false
+    });
+    if (error) {
+      return res.status(500).json({ 
+      error: 'Ошибка БД при отметке delivered'});
+    }
+    return res.status(200).json({ message: 'Сообщения отмечены delivered' });
+  }
+  catch (err){
+    return res.status(500).json({ error: 'Фатальная ошибка сервера, он чудом избежал смэрти!'});
+  }
+});
 
 /*WEBSOCKET SERVER WEBSOCKET SERVER WEBSOCKET SERVER
   WEBSOCKET SERVER WEBSOCKET SERVER WEBSOCKET SERVER

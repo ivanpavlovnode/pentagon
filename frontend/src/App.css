@@ -3,7 +3,6 @@
 @import "components/css/Account.css";
 @import "components/css/Staff.css";
 @import "components/css/Messenger.css";
-@import "components/css/Documents.css";
 @import "components/css/Auth.css";
 /*Общие настройки*/
 *{
@@ -41,6 +40,14 @@ button, input{
     color: #09FF00;
     border-color: #09FF00;
     background-color: rgb(5, 90, 0);
+    &:hover{
+        color: rgb(142, 255, 130);
+    }
+    &:active{
+        text-shadow:
+            -2px -2px 0 red, /* Смещение красного */
+            2px 2px 0 blue; /* Смещение синего */
+    }
 }
 /*Для всех картинок*/
 img{
@@ -59,4 +66,13 @@ body {
     border-style:solid;
     line-height: 0;
     width: 100%;
+}
+/*Загрузочное окно*/
+.loadingWindow{
+    width: 100%;
+    height: 90vh;
+    border-style: none;
+    text-align: center;
+    line-height: 4;
+    font-size: 10vw;
 }

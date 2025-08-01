@@ -48,7 +48,7 @@ function App(){
   }
 
 
-  //Проверка аутентификации, выдача <del>в еб@ло</del> окна аутентификации
+  //Проверка аутентификации, выдача <del>в лицо</del> окна аутентификации
   if(isAuth !== 'nope' || sessionStorage.getItem("token") !== null)
   {
     return(

@@ -1,4 +1,3 @@
-import { FOCUSABLE_SELECTOR } from '@testing-library/user-event/dist/utils';
 import React, {useState, useEffect} from 'react';
 function Staff() {
     const [staff, setStaff] = useState([]);
@@ -78,7 +77,7 @@ function Staff() {
             </main>
         );
     }
-    if(details === 0){
+    if(staff[0] !== undefined && details === 0){
         return (
             <div>
                 <div className = "sortLine">
@@ -105,12 +104,17 @@ function Staff() {
             </div>
         );
     }
-    else if(details !== 0){
+    else if(staff[0] !== undefined && details !== 0){
         return(
             <div>
                 <DetailView person = {staff.find(a => a.id === details)}/>
             </div>
         );
+    }
+    else{
+        return (
+            <main className = "loadingWindow">LOADING STAFF</main>
+        )
     }
 }
 export default Staff;
