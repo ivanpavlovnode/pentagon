@@ -237,7 +237,7 @@ app.get('/api/documents', async (req, res) => {
       }
       const { data: documents, error: docs_error } = await db
         .from('Documents')
-        .select('id, creator, docdata, delivered, disposable, date')
+        .select('id, creator, recipient, docdata, delivered, disposable, date, version, access_level')
         .or(`recipient.eq.${user_id}, recipient.is.null, creator.eq.${user_id}`)
         .or(`access_level.lte.${user_access_level.access_level}, access_level.is.null`)
         .order('id', { ascending: false });

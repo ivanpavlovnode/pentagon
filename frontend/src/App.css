@@ -34,13 +34,31 @@
     text-shadow: none;
 }
 /*Для всех кнопок*/
-button, input{
+button{
 
     display: inline-block;
     color: #09FF00;
     border-color: #09FF00;
-    background-color: rgb(5, 90, 0);
+    background-color: rgb(2, 60, 0);
     &:hover{
+        background-color: rgb(5, 90, 0);
+        color: rgb(142, 255, 130);
+    }
+    &:active{
+        text-shadow:
+            -2px -2px 0 red, /* Смещение красного */
+            2px 2px 0 blue; /* Смещение синего */
+    }
+}
+/*Для всех текстовых полей*/
+input, textarea{
+
+    display: inline-block;
+    color: #09FF00;
+    border-color: #09FF00;
+    background-color: rgb(2, 60, 0);
+    &:hover{
+        background-color: rgb(5, 90, 0);
         color: rgb(142, 255, 130);
     }
     &:active{

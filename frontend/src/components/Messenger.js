@@ -198,8 +198,8 @@ function Messenger() {
                             return (
                                 <div key = {message.id} className = {isMe ? "messenger_history_message" : "messenger_history_message_notmy"}>
                                     <div className = "messenger_history_name">
-                                        <img src = {staff[message.sender - 1].url}/>
-                                        {staff[message.sender - 1].full_name}
+                                        <img src = {staff.find(person => person.id === message.sender).url}/>
+                                        {staff.find(person => person.id === message.sender).full_name}
                                     </div>
                                     {message.text}
                                 </div>
