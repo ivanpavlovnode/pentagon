@@ -5,8 +5,9 @@ import { DocumentsContext } from '../Documents';
 
 function Multiwindow(){
     const userData = JSON.parse(sessionStorage.getItem('userData'));
+    const token = sessionStorage.getItem('token');
     //window: 'main','read','create','update'
-    const {staff, documents, chosenDoc, window, setChosenDoc, setWindow} = useContext(DocumentsContext);
+    const {staff, documents, chosenDoc, window, setChosenDoc, setWindow, fetchDocs} = useContext(DocumentsContext);
     
     //Состояния для создания и редактирования документа
     const [recipient, setRecipient] = useState(null);
@@ -14,9 +15,11 @@ function Multiwindow(){
     const [disposable, setDisposable] = useState(false);
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
-    const [file, setFile] = useState(null);
+    const file = useRef(null);
 
     //Состояния для интерактивных элементов
+    const fileInput = useRef(null);
+    const [systemMessage, setMessage] = useState('');
     const [searchText, setSearch] = useState('');
     const [showSearchInput, setSearchInput] = useState(false);
     const [showAccessLevelButtons, setAccessLevelButtons] = useState(false);
@@ -67,11 +70,11 @@ function Multiwindow(){
                     {
                         "name": "",
                         "description": "",
-                        "filepath": ""
                     },
                     "id": "new",
                     "recipient": null,
-                    "version": 0
+                    "version": 0,
+                    "file_extension": null
                 }
             )
         }
@@ -79,7 +82,7 @@ function Multiwindow(){
         else{
             return (documents.find(doc => doc.id === chosenDoc))
         }
-    }, [chosenDoc]);
+    }, [chosenDoc, documents, window]);
 
     //Присвоитель значений из документа в состояния
     //Также обнуляет поиск и элементы UI
@@ -90,7 +93,7 @@ function Multiwindow(){
         setDisposable(chosenDocObject.disposable);
         setName(chosenDocObject.docdata.name);
         setDescription(chosenDocObject.docdata.description);
-        setFile(chosenDocObject.docdata.filepath);
+        file.current = null;
         setSearch('');
         setSearchInput(false);
         setAccessLevelButtons(false);
@@ -99,7 +102,7 @@ function Multiwindow(){
     //Присвоитель значений из документа в состояния
     useEffect(() => {
         defaulter();
-    }, [chosenDocObject]);
+    }, [window]);
 
     //Вычисляет разрешенные уровни доступа документов
     const availableAccesssLevels = useMemo(() => {
@@ -110,13 +113,191 @@ function Multiwindow(){
         return result;
     }, []);
     
+    //Обработчик пользовательского файла
+    const fileHandler = async(event) => {
+        const eventFile = event.target.files[0];
+        if (!eventFile) return;
+        const formData =  new FormData();
+        formData.append('file', eventFile);
+        file.current = formData;
+    }
+
+    //Запрос загрузки файла документа
+    const uploadFile = async(document_id) => {
+        file.current.append('id', document_id);
+        try {
+            const res = await fetch(`${process.env.REACT_APP_URL}/api/documents/file`, {
+                method: 'POST',
+                headers: {'Authorization': `Bearer ${token}`},
+                cache: 'no-store',
+                body: file.current
+            });
+            if(!res.ok) {
+                const errorData = await res.json();
+                throw new Error (errorData.error);
+            }
+            if(res.ok){
+                return true;
+            }
+        }
+        catch(err){
+            console.error(err);
+            return false;
+        }
+    }
+    //Функция для скачивания файла
+    const downloadFile = async() => {
+        try{
+            const res = await fetch(`${process.env.REACT_APP_URL}/api/documents/file`, {
+                headers: 
+                {
+                    'Authorization': `Bearer ${token}`,
+                    'id': chosenDoc
+                }, 
+                cache: 'no-store'});
+            const url = URL.createObjectURL(await res.blob());
+            //Создаем имя файла
+            const fileName = `${chosenDoc}${chosenDocObject.file_extension}`;
+            //Делаем темную магию с виртуальной ссылкой
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileName;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            setTimeout(() => {
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }, 500);
+        }
+        catch(error){
+            console.error('Download error:', error);
+        }
+    }
+    //Запрос для обновления документа
+    const updateDocument = async() => {
+        try {
+            const res = await fetch(`${process.env.REACT_APP_URL}/api/documents`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                cache: 'no-store',
+                body: JSON.stringify(
+                    {   "id": chosenDoc,
+                        "recipient": recipient,
+                        "access_level": access_level,
+                        "disposable": disposable,
+                        "docdata": 
+                        {
+                            "name": name,
+                            "description": description
+                        }
+                    }
+                )
+            });
+            if(!res.ok) {
+                setMessage('DOCUMENT INFO UPDATE FAILED');
+                setTimeout(() => setMessage(''), 2000);
+                const errorData = await res.json();
+                throw new Error (errorData.error);
+            }
+            if(res.ok) {
+                setMessage('DOCUMENT INFO UPDATED');
+                setTimeout(() => setMessage(''), 2000);
+                if(file.current instanceof FormData){
+                    const upload_done = await uploadFile(chosenDoc);
+                    if(upload_done === true){
+                        console.log('File succesfully uploaded');
+                        setMessage('FILE UPDATED');
+                        setTimeout(() => setMessage(''), 2000);
+                    }
+                    else{
+                        console.error('File uploading error');
+                        setMessage('FILE UPDATE FAILED');
+                        setTimeout(() => setMessage(''), 2000);
+                    }
+                }
+                await fetchDocs();
+                setTimeout(() => defaulter(), 1000);
+            }
+        }
+        catch(err){
+            console.error(err);
+        }
+    }
+    //Запрос для создания документа
+    const createDocument = async() => {
+        try {
+            const res = await fetch(`${process.env.REACT_APP_URL}/api/documents`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                cache: 'no-store',
+                body: JSON.stringify(
+                    {
+                        "recipient": recipient,
+                        "access_level": access_level,
+                        "disposable": disposable,
+                        "docdata": 
+                        {
+                            "name": name,
+                            "description": description
+                        }
+                    }
+                )
+            });
+            if(!res.ok) {
+                setMessage('DOCUMENT CREATING FAILED');
+                setTimeout(() => setMessage(''), 2000);
+                const errorData = await res.json();
+                throw new Error (errorData.error);
+            }
+            if(res.ok){
+                setMessage('DOCUMENT CREATED');
+                setTimeout(() => setMessage(''), 2000);
+                const new_id = await res.json();
+                if(file.current instanceof FormData){
+                    const upload_done = await uploadFile(new_id.id);
+                    if(upload_done === true){
+                        console.log('File succesfully uploaded');
+                        setMessage('FILE UPLOADED');
+                        setTimeout(() => setMessage(''), 2000);
+                    }
+                    else{
+                        console.error('File uploading error');
+                        setMessage('FILE UPLOADING FAILED');
+                        setTimeout(() => setMessage(''), 2000);
+                    }
+                }
+                await fetchDocs();
+                setTimeout(() => defaulter(), 1000);
+            }
+        }
+        catch(err){
+            console.error(err);
+        }
+    }
+
+    //Заголовок страницы
+    const titleTextMemo = useMemo(() =>{
+        if(window === 'read'){
+            return 'VIEWING DOCUMENT';
+        }
+        else if(window === 'update'){
+            return 'EDITING DOCUMENT';
+        }
+        else if(window === 'create'){
+            return 'CREATING DOCUMENT';
+        }
+    }, [window]);
+
     return(
         <DocumentsMultiwindow>
-            <div style = {{gridArea: "title"}}>
-                {window === 'read' && 'VIEWING DOCUMENT'}
-                {window === 'update' && 'EDITING DOCUMENT'}
-                {window === 'create' && 'CREATING DOCUMENT'}
-            </div>
+            <div style = {{gridArea: "title"}}> {titleTextMemo + ' : ' + systemMessage} </div>
 
             <div style = {{gridArea: "id"}}>
                 {(window === 'read' || window === 'update') && 
@@ -158,8 +339,6 @@ function Multiwindow(){
                 {window === 'create' && 'version: 0'}
             </div>
 
-
-
             <div style = {{gridArea: "recipient", position: "relative", zIndex: 3}}>
                 {window === 'read' && 'recipient: ' + (() => {
                         if(chosenDocObject.recipient !== null){
@@ -182,6 +361,7 @@ function Multiwindow(){
                         {showSearchInput && 
                         <Dropdown>
                             <input 
+                                id = "recipient"
                                 style = {{height: "100%", minHeight: "100%"}}
                                 type = "text" 
                                 placeholder = 'SEARCH'
@@ -205,8 +385,6 @@ function Multiwindow(){
                     </DropdownWrapper>
                 }
             </div>
-
-
 
             <div style = {{gridArea: "access_level", position: "relative", zIndex: 2}}>
                 {window === 'read' && 'access_level: ' + (() => {
@@ -243,8 +421,6 @@ function Multiwindow(){
                     </DropdownWrapper>}
             </div>
 
-
-
             <div style = {{gridArea: "disposable", position: "relative", zIndex: 1}}>
                 {window === 'read' && 'disposable: ' + 
                     (chosenDocObject.disposable === true ? 'yes' : 'no')
@@ -269,8 +445,6 @@ function Multiwindow(){
                     </DropdownWrapper>}
             </div>
 
-
-
             <div style = {{gridArea: "name"}}>
                 {window === 'read' && 
                 <div>
@@ -281,6 +455,7 @@ function Multiwindow(){
                 }
                 {(window === 'update' || window === 'create') && 
                     <input 
+                        id = "nameField"
                         style = {{height: "100%", minHeight: "100%"}}
                         type = "text" 
                         placeholder = 'Document name'
@@ -298,6 +473,7 @@ function Multiwindow(){
                 }
                 {(window === 'update' || window === 'create') && 
                 <DescriptionChange
+                    id = "description"
                     type = "text" 
                     placeholder = 'Document description'
                     value={description}
@@ -306,37 +482,63 @@ function Multiwindow(){
             </div>
 
             <div style = {{gridArea: "file"}}>
-                {window === 'read' && 
-                    <button>Download file</button>
+                {window === 'read' && chosenDocObject.file_extension !== null &&
+                    <button onClick = { () => {downloadFile()}}>
+                        Download file{' type: ' + chosenDocObject.file_extension}
+                    </button>
+                }
+                {window === 'read' && chosenDocObject.file_extension === null &&
+                    <div>No file attached</div>
                 }
                 {window === 'update' && 
-                    <button>Change file</button>
+                    <div>
+                        <input
+                            id = "file"
+                            type = "file"
+                            accept=".jpg, .jpeg, .png, .gif, .txt, .docx, .xlsx, .rtf, .pdf"
+                            onChange={fileHandler}
+                            style={{ display: 'none' }}
+                            ref = {fileInput}
+                        />
+                        <button onClick = {() => fileInput.current.click()}>{'Change file (.xlsx, .docx, .pdf, .txt, .rtf, .jpg, .png, .gif)'}</button>
+                    </div>
                 }
                 {window === 'create' && 
-                    <button>Upload file</button>
+                    <div>
+                        <input
+                            id = "file"
+                            type = "file"
+                            accept=".jpg, .jpeg, .png, .gif, .txt, .docx, .xlsx, .rtf, .pdf"
+                            onChange={fileHandler}
+                            style={{ display: 'none' }}
+                            ref = {fileInput}
+                        />
+                        <button onClick = {() => fileInput.current.click()}>{'Upload file (.xlsx, .docx, .pdf, .txt, .rtf, .jpg, .png, .gif)'}</button>
+                    </div>
                 }
             </div>
 
             <div style = {{gridArea: "back"}}>
                 {window === 'read' && 
-                    <button onClick = {() => {setWindow('main'); setChosenDoc(0); defaulter();}}>Exit</button>
+                    <button onClick = {() => {setWindow('main'); setChosenDoc(0)}}>Exit</button>
                 }
                 {window === 'update' && 
-                    <button onClick = {() => {setWindow('read'); defaulter();}}>Decline</button>
+                    <button onClick = {() => {setWindow('read')}}>Decline</button>
                 }
                 {window === 'create' && 
-                    <button onClick = {() => {setWindow('main'); setChosenDoc(0); defaulter();}}>Cancel</button>
+                    <button onClick = {() => {setWindow('main'); setChosenDoc(0)}}>Cancel</button>
                 }
             </div>
 
             <div style = {{gridArea: "forward"}}>
                 {window === 'read' && (docByUser ? 
-                    <button onClick = {() => {setWindow('update'); defaulter();}}>Edit</button> : "Can't edit")
+                    <button onClick = {() => {setWindow('update')}}>Edit</button> : "Can't edit")
                 }
                 {window === 'update' && (docByUser ? 
-                    <button >Confirm changes</button> : "Can't confirm")
+                    <button onClick = {() => {updateDocument(); setTimeout(() => setWindow('read') , 1000)}}>Confirm changes</button> : "Can't confirm")
                 }
-                {window === 'create' && <button>Confirm creation</button>}
+                {window === 'create' && 
+                    <button onClick = {() => {createDocument(); setTimeout(() => setWindow('main') , 1000)}}>Confirm creation</button>}
             </div>
         </DocumentsMultiwindow>
     );

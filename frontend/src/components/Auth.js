@@ -17,7 +17,7 @@ const authSubmit = async () =>{
     {
         setTitleText('FETCHING');
         try{
-            const data = await fetch(`${process.env.REACT_APP_URL}/auth`,
+            const data = await fetch(`${process.env.REACT_APP_URL}/api/auth`,
             {method:'POST', headers: {'Content-Type':'application/json'},
             body: JSON.stringify(authData)});
             const res = await data.json();

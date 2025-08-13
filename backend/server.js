@@ -37,10 +37,31 @@ server.on('upgrade', (request, socket, head) => {
 });
 //Тестовый роут
 app.get('/api/test', (req, res) => {
-  res.json({ status: 'ok' });
+  if(req || !req) return res.status(200).json({ message: 'А нам все равно, а нам все равно'});
 });
 //Настраиваем Multer
-const upload = multer({storage: multer.memoryStorage()}); 
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {fileSize: 10 * 1024 * 1024},
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'application/msword',
+      'application/pdf',
+      'application/rtf',
+      'application/vnd.ms-excel',
+      'text/plain'
+    ];
+    if(allowedTypes.includes(file.mimetype)){
+      cb(null, true);
+    }
+    else{
+      cb(null, false);
+    }
+  }
+}); 
 // Подключаемся к Supabase
 const db = createClient(
   process.env.SUPABASE_URL,
@@ -53,24 +74,55 @@ const checkToken = (req) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     return decoded.id;
   };
+// Middleware поиска документа
+const findDocument = async(document_id, res) => {
+    //Принимает айди, возвращает документ. При ошибке отправляет ответ
+    const { data: document, error: documentError } = await db
+    .from('Documents')
+    .select('*')
+    .eq('id', document_id)
+    .single();
+    if (!document) {
+      return res.status(404).json({ error: 'Document not found'});
+    }
+    if (documentError) {
+      return res.status(404).json({ error: 'Document search error'});
+    }
+    return document;
+}
+// Middleware поиска пользователя
+const findUser = async(user_id, res) => {
+    //Принимает айди, возвращает документ. При ошибке отправляет ответ
+    const { data: userData, error: userDataError } = await db
+    .from('Staff')
+    .select('*')
+    .eq('id', user_id)
+    .single();
+    if (!userData) {
+      return res.status(404).json({ error: 'User not found'});
+    }
+    if (userDataError) {
+      return res.status(404).json({ error: 'User search error'});
+    }
+    return userData;
+}
 //Маршрут аутентификации
-app.post('/auth', async (req, res) =>
+app.post('/api/auth', async (req, res) =>
 {
   const {id, password} = req.body;
 
   //Поиск пользователя в БД
   try{
-    const{data, error} = await db
+    const{data: userData, error} = await db
     .from('Staff')
     .select('*')
     .eq('id', id)
     .single();
-
-    const userData = data;
+    if(error) return res.status(500).json({message: 'DB_ERROR'});
     //Добавить хэширование надо будет!
     if(password != userData.password)
     {
-      res.json({message: 'INVALID'});
+      return res.status(401).json({message: 'INVALID'});
     }
     else if(password == userData.password)
     {
@@ -81,15 +133,15 @@ app.post('/auth', async (req, res) =>
         { expiresIn: '1d' });
 
       delete userData.password;
-      res.json({message: 'SUCCESSFUL', userData, token});
+      return res.status(202).json({message: 'SUCCESSFUL', userData, token});
     }
   }
   catch{
-    res.json({message: 'SERVER_ERROR'});
+    return res.status(500).json({message: 'SERVER_ERROR'});
   }
 });
 //Замена и получение аватара
-app.get('/avatars', async (req, res) => {
+app.get('/api/avatars', async (req, res) => {
   try{
     const user_id = checkToken(req);
     if(!user_id) return res.status(401).json({ error: 'Токен невалиден' });
@@ -103,14 +155,13 @@ app.get('/avatars', async (req, res) => {
 
     res.type('jpg'); // Устанавливаем Content-Type: image/jpeg
     res.set('Cache-Control', 'public, max-age=31536000');
-    res.send(buffer);
-  }  
+    res.status(200).send(buffer);
+  }
   catch(err) {
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
-//Эндпоинт для заполнения вкладки Staff аватарами
-//Дает конкретный аватар по id
+//Эндпоинт для заполнения вкладки Staff аватарами. Дает конкретный аватар по id
 app.get('/api/avatars/byid', async (req, res) => {
   try{
     const user_id = checkToken(req);
@@ -123,14 +174,14 @@ app.get('/api/avatars/byid', async (req, res) => {
     const arrayBuffer = await data.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     res.type('jpg'); // Устанавливаем Content-Type: image/jpeg
-    res.send(buffer);
+    res.status(200).send(buffer);
   }  
   catch(err) {
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
 //Установка аватара в Account
-app.post('/avatars', upload.single('avatar'), async (req, res) => {
+app.post('/api/avatars', upload.single('avatar'), async (req, res) => {
   try{
     const user_id = checkToken(req);
     if(!user_id) return res.status(401).json({ error: 'Токен невалиден' });
@@ -144,7 +195,7 @@ app.post('/avatars', upload.single('avatar'), async (req, res) => {
       return res.status(500).json({ 
       error: 'Ошибка сохранения файла'});
     }
-    return res.status(200).json({ message: 'Аватар обновлён' });
+    return res.status(202).json({ message: 'Аватар обновлён' });
   }
   catch (err){
     return res.status(500).json({ error: 'Ошибка сервера'});
@@ -161,23 +212,23 @@ app.get('/api/staff', async (req, res) => {
         .select('id, access_level, full_name, call_name, rank, div, status, service_record')
         .order('id', { ascending: true });
         if(error) return res.status(500).json({ error: 'Database error' });
-        res.json(data);
+        return res.status(200).json(data);
       }
       catch (err){
-        res.status(500).json({ error: 'Ошибка сервера' });
+        return res.status(500).json({ error: 'Ошибка сервера' });
       }
     }
     else throw new Error();
   }
   catch{
-    res.status(401).json({ error: 'Ошибка аутентификации' });
+    return res.status(401).json({ error: 'Ошибка аутентификации' });
   }
 });
 //История собщений по айди пользователя
 app.get('/api/messenger', async (req, res) => {
   try{
     const user_id = checkToken(req);
-    if(!user_id) res.status(401).json({ error: 'Ошибка аутентификации' });
+    if(!user_id) return res.status(401).json({ error: 'Ошибка аутентификации' });
     try{
       const { data, error } = await db
         .from('Messenger')
@@ -185,18 +236,18 @@ app.get('/api/messenger', async (req, res) => {
         .or(`sender.eq.${user_id}, getter.eq.${user_id}`)
         .order('id', { ascending: true });
       if(error) return res.status(500).json({ error: 'Database error' });
-      res.json(data);
+      return res.status(200).json(data);
     }
     catch (err){
-      res.status(500).json({ error: 'Ошибка сервера' });
+      return res.status(500).json({ error: 'Ошибка сервера' });
     }
 
   }
   catch{
-    res.status(500).json({ error: 'Ошибка сервера' });
+    return res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
-//Отметка Delivered для прочитанного сообщения
+//Отметка получения сообщений
 app.post('/api/messenger', async (req, res) => {
   try{
     const user_id = checkToken(req);
@@ -210,13 +261,12 @@ app.post('/api/messenger', async (req, res) => {
       delivered: false
     });
     if (error) {
-      return res.status(500).json({ 
-      error: 'Ошибка БД при отметке delivered'});
+      return res.status(500).json({error: 'Ошибка БД при отметке delivered'});
     }
     return res.status(200).json({ message: 'Сообщения отмечены delivered' });
   }
   catch (err){
-    return res.status(500).json({ error: 'Фатальная ошибка сервера, он чудом избежал смэрти!'});
+    return res.status(500).json({ error: 'SERVER FATAL ERROR'});
   }
 });
 //Получение документов пользователя
@@ -237,13 +287,13 @@ app.get('/api/documents', async (req, res) => {
       }
       const { data: documents, error: docs_error } = await db
         .from('Documents')
-        .select('id, creator, recipient, docdata, delivered, disposable, date, version, access_level')
+        .select('*')
         .or(`recipient.eq.${user_id}, recipient.is.null, creator.eq.${user_id}`)
         .or(`access_level.lte.${user_access_level.access_level}, access_level.is.null`)
         .order('id', { ascending: false });
 
       if(docs_error) return res.status(500).json({ error: 'Database find doc error' });
-      return res.json(documents);
+      return res.status(200).json(documents);
     }
     catch (err){
       return res.status(500).json({ error: 'Database fatal error CAUGHT' });
@@ -253,30 +303,260 @@ app.get('/api/documents', async (req, res) => {
     return res.status(500).json({ error: 'SERVER FATAL ERROR' });
   }
 });
-//Отправка нового документа на сервер
-app.post('/api/messenger', async (req, res) => {
+//Изменение документа пользователя
+app.patch('/api/documents', async (req, res) => {
   try{
+    //Проверяем токен
     const user_id = checkToken(req);
     if(!user_id) return res.status(401).json({ error: 'Токен невалиден' });
-    const { error } = await db
-    .from('Messenger')
-    .update({delivered: true})
-    .match({
-      sender: req.body.chosenContact,
-      getter: user_id,
-      delivered: false
-    });
-    if (error) {
-      return res.status(500).json({ 
-      error: 'Ошибка БД при отметке delivered'});
+    //Берем тело запроса
+    const reqBody = req.body;
+    //Получаем данные пользователя
+    const userData = await findUser(user_id, res);
+    //Получаем документ
+    const document = await findDocument(reqBody.id, res);
+    //Проверяем существование получателя
+    if(reqBody.recipient !== null){
+      const newRecipient = await findUser(reqBody.recipient);
     }
-    return res.status(200).json({ message: 'Сообщения отмечены delivered' });
+    else if(reqBody.recipient !== null && (typeof reqBody.recipient !== 'number')){
+      return res.status(400).json({ error: 'Incorrect recipient value'});
+    }
+    //Проверяем уровень доступа
+    if(document.creator !== userData.id ||
+      reqBody.access_level > userData.access_level ||
+      document.access_level > userData.access_level){
+        return res.status(403).json({ error: 'Access denied'});
+    }
+    //Проверяем длину имени и описания (защита от гриферства)
+    if(reqBody.docdata.name.length > 200 || reqBody.docdata.description.length > 2000){
+      return res.status(413).json({ error: 'Too long name or description. Dont try to mess up my db, kiddo.'});
+    }
+    const { error: updateError } = await db
+    .from('Documents')
+    .update(
+      {
+        recipient: reqBody.recipient,
+        access_level: reqBody.access_level,
+        disposable: reqBody.disposable,
+        docdata: 
+        {
+          name: reqBody.docdata.name,
+          description: reqBody.docdata.description
+        },
+        //Всегда меняется
+        delivered: false,
+        version: (document.version + 1),
+        date: new Date() 
+      }
+    )
+    .eq('id', reqBody.id);
+    if (updateError) {
+      return res.status(500).json({ error: 'Database error while updating document' + updateError.message});
+    }
+    return res.status(202).json({ error: 'Succesfully updated'});
   }
   catch (err){
-    return res.status(500).json({ error: 'Фатальная ошибка сервера, он чудом избежал смэрти!'});
+    return res.status(500).json({ error: 'SERVER FATAL ERROR!'});
   }
 });
+//Создание нового документа
+app.post('/api/documents', async (req, res) => {
+  try{
+    //Проверяем токен
+    const user_id = checkToken(req);
+    if(!user_id) return res.status(401).json({ error: 'Токен невалиден' });
+    //Берем тело запроса
+    const reqBody = req.body;
+    //Получаем данные пользователя
+    const userData = await findUser(user_id, res);
+    //Проверяем существование получателя
+    if(reqBody.recipient !== null){
+      const newRecipient = await findUser(reqBody.recipient, res);
+    }
+    else if(reqBody.recipient !== null && (typeof reqBody.recipient !== 'number')){
+      return res.status(400).json({ error: 'Incorrect recipient value'});
+    }
+    //Проверяем уровень доступа
+    if(reqBody.access_level > userData.access_level){
+        return res.status(403).json({ error: 'Access denied'});
+    }
+    //Проверяем длину имени и описания (защита от гриферства)
+    if(reqBody.docdata.name.length > 200 || reqBody.docdata.description.length > 2000){
+      return res.status(413).json({ error: 'Too long name or description'});
+    }
 
+    const { data: createdDocument, error: insertError } = await db
+    .from('Documents')
+    .insert([
+      {
+        creator: userData.id,
+        recipient: reqBody.recipient,
+        access_level: reqBody.access_level,
+        disposable: reqBody.disposable,
+        docdata: 
+        {
+          name: reqBody.docdata.name,
+          description: reqBody.docdata.description
+        },
+        //Всегда устанавливается
+        delivered: false,
+        version: 0,
+        date: new Date() 
+      }
+    ])
+    .select('*')
+    .single();
+    if (!createdDocument || insertError) {
+      return res.status(500).json({ error: 'Database error while creating document ' + insertError.message});
+    }
+    return res.status(201).json({id: createdDocument.id});
+  }
+  catch (err){
+    return res.status(500).json({ error: 'SERVER FATAL ERROR!'});
+  }
+});
+// Роут для получения документа
+app.get('/api/documents/file', async (req, res) => {
+  try{
+    const user_id = checkToken(req);
+    if(!user_id) return res.status(401).json({ error: 'Invalid token' });
+    //Получаем документ
+    const document_id = req.headers.id;
+    const document = await findDocument(document_id, res);
+    //Проверяем доступ пользователя
+    const userData = await findUser(user_id, res);
+    if(document.access_level > userData.access_level){
+      return res.status(403).json({error: 'Access denied'});
+    }
+    //Проверяем принадлежность пользователя
+    if(document.recipient !== null && (document.creator !== user_id || document.recipient !== user_id)){
+      return res.status(403).json({error: 'Access denied'});
+    }
+    //Ищем требуемый файл
+    const { data: file, error: fileError } = await db.storage
+     .from('documents')
+     .download(document_id);
+    if (!file) return res.status(404).json({error: 'File not found'});
+    if (fileError) return res.status(400).json({error: 'File search error'});
+    //Создаем имя файла
+    const fileName = `${document.docdata.name}.${document.file_extension}`;
+    //Удаляем документ и файл, если одноразовый (disposable)
+    if(document.disposable === true){
+      const {error: deleteDocError} = await db
+      .from('Documents')
+      .delete()
+      .eq('id', document.id);
+      if(deleteDocError){
+        res.status(500).json({ error: 'Document delete error' });
+      }
+      const {error: deleteFileError} = await db.storage
+      .from('documents')
+      .remove(document.id);
+      if(deleteFileError){
+        res.status(500).json({ error: 'File delete error' });
+      }
+    }
+    if(document.delivered === false){
+      const { error: setDeliveredError } = await db
+      .from('Documents')
+      .update({delivered: true})
+      .eq('id', document.id);
+      if(setDeliveredError){
+        res.status(500).json({ error: 'Set delivered error' });
+      }
+    }
+    //Отправляем файл
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    res.set('Cache-Control', 'public, max-age=31536000');
+    res.status(200).send(Buffer.from(await file.arrayBuffer()));
+  }
+  catch(err) {
+    res.status(500).json({ error: 'SERVER FATAL ERROR WHILE SENDING FILE' });
+  }
+});
+// Для изменения и создания файла - один роут. Не видел смысла делать отдельные.
+app.post('/api/documents/file', upload.single('file'), async (req, res) => {
+  try{
+    const user_id = checkToken(req);
+    if(!user_id) return res.status(401).json({ error: 'Invalid token' });
+    if (!req.file) return res.status(400).json({ error: 'No file or unacceptable file' });
+    //Переменная с айди нужного документа
+    const document_id = req.body.id;
+    //Получаем документ
+    const { data: document, error: documentError } = await db
+    .from('Documents')
+    .select('*')
+    .eq('id', document_id)
+    .single();
+    if (!document) {
+      return res.status(404).json({ error: 'Document not found'});
+    }
+    if (documentError) {
+      return res.status(404).json({ error: 'Document search error'});
+    }
+    if(document.creator !== user_id){
+      return res.status(403).json({ error: 'Upload denied, not your document'});
+    }
+    //Получаем данные пользователя
+    const{data: userData, error: userDataError} = await db
+    .from('Staff')
+    .select('*')
+    .eq('id', user_id)
+    .single();
+    if (userDataError || !userData) {
+      return res.status(404).json({ error: 'User not found'});
+    }
+    if(document.access_level > userData.access_level){
+      return res.status(403).json({ error: 'Upload denied, no access'});
+    }
+    //Объект для перевода mime в расширение
+    const mimeToExt = {
+      'image/jpeg': '.jpg',
+      'image/png': '.png',
+      'image/gif': '.gif',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+      'application/pdf': '.pdf',
+      'application/rtf': '.rtf',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
+      'text/plain': '.txt'
+    };
+    //Переменная с расширением загружаемого файла
+    const extension = mimeToExt[req.file.mimetype];
+    //Загружаем файл
+    const { error: FileError } = await db.storage
+    .from('documents')
+    .upload(`${document_id}`, req.file.buffer,
+    {upsert: true, //upsert = true разрешает перезапись
+    contentType: req.file.mimetype});
+    if (FileError) {
+      return res.status(500).json({ error: 'Error while saving file'});
+    }
+    /*Запись расширения в БД в таблицу Documents
+    Необходимо для скачивания файла в клиенте с нужным расширением
+    Иначе пришлось бы искать в хранилище через list(), это неэффективно*/
+    const{error: ExtError} = await db
+    .from('Documents')
+    .update({file_extension: extension})
+    .eq('id', document_id);
+    if (ExtError) {
+      return res.status(500).json({ error: 'Error while saving file'});
+    }
+    return res.status(202).json({ message: 'File uploaded' });
+  }
+  catch (err){
+    return res.status(500).json({ error: 'Server file upload error'});
+  }
+});
+//Обработчик ошибок, чтобы сервер не падал
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    res.status(400).json({ error: 'Denied by Multer, uncorrect file' });
+  } else {
+    console.error(err);
+    res.status(520).json({ error: 'UNKNOWN SERVER ERROR' });
+  }
+});
 /*WEBSOCKET SERVER WEBSOCKET SERVER WEBSOCKET SERVER
   WEBSOCKET SERVER WEBSOCKET SERVER WEBSOCKET SERVER
   WEBSOCKET SERVER WEBSOCKET SERVER WEBSOCKET SERVER*/
@@ -335,6 +615,5 @@ wss.on('connection', (socket, request) => {
     return;
   }
 });
-
 // Запускаем сервер
 server.listen(port);

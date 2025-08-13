@@ -56,7 +56,7 @@ function Documents() {
                 clearInterval(intervalRef.current);
             }
         };
-    }, []);
+    }, [window]);
 
     //Фильтрация доставленных сообщений перед поисковой фильтрацией
     // TRUE === ПОКАЗЫВАТЬ ДОСТАВЛЕННЫЕ
@@ -76,9 +76,9 @@ function Documents() {
             deliveredDocuments.forEach((doc) =>{
                 const creator = staff.find(person => person.id === doc.creator).full_name.toLowerCase();
                 if(
-                    creator.includes(text) || 
-                    doc.docdata.name.includes(text) ||
-                    doc.docdata.description.includes(text) ||
+                    creator.toLowerCase().includes(text) || 
+                    doc.docdata.name.toLowerCase().includes(text) ||
+                    doc.docdata.description.toLowerCase().includes(text) ||
                     String(doc.date).includes(text)
                 ){
                     searchResult.push(doc);
@@ -106,9 +106,9 @@ function Documents() {
     }, [filteredDocuments, staff, sort]);
 
     //Рендеринг компеонента
-    if(staff[0] !== undefined && documents[0] !== undefined && DocumentsContext !== undefined){
+    if(staff[0] !== undefined && DocumentsContext !== undefined){
         return (
-            <DocumentsContext.Provider value = {{staff, documents, chosenDoc, window, setChosenDoc, setWindow}}>
+            <DocumentsContext.Provider value = {{staff, documents, chosenDoc, window, setChosenDoc, setWindow, fetchDocs}}>
                 {window === 'main' && 
                 <DocumentsWindow>
                     <CreateButton 
@@ -116,6 +116,7 @@ function Documents() {
                         onClick = {() => {setChosenDoc(0); setWindow('create')}}
                     >Create New Document</CreateButton>
                     <FindInput 
+                        id = "findInput"
                         type = "text" 
                         placeholder = "Find Document"
                         value={searchText}
@@ -141,6 +142,7 @@ function Documents() {
                         active = {sort === 'date'}
                         onClick = {() => setSort('date')}
                     >Date</SortByDate>
+                    {documents[0] !== undefined && 
                     <DocsTable>
                         {sortedDocuments.map(doc => 
                             <DocCard key = {doc.id}>
@@ -155,6 +157,7 @@ function Documents() {
                         </DocCard>
                         )}
                     </DocsTable>
+                    }
                 </DocumentsWindow>}
                 {window !== 'main' &&
                 <Multiwindow/>}

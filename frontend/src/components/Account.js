@@ -10,7 +10,7 @@ useEffect(() => {
         const token = sessionStorage.getItem('token');
         let url;
         try {
-            const data = await fetch(`${process.env.REACT_APP_URL}/avatars`, {
+            const data = await fetch(`${process.env.REACT_APP_URL}/api/avatars`, {
                 headers: {'Authorization': `Bearer ${token}`},
                 cache: 'no-store'});
             if(!data.ok) throw new Error('Ошибка получения аватара');
@@ -40,7 +40,7 @@ const photoChange = async (event) => {
     const formData =  new FormData();
     formData.append('avatar', file);
     try{
-        const response = await fetch(`${process.env.REACT_APP_URL}/avatars`,{
+        const response = await fetch(`${process.env.REACT_APP_URL}/api/avatars`,{
         method:'POST',
         headers: {'Authorization': `Bearer ${token}`},
         cache: 'no-store',
