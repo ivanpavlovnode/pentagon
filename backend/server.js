@@ -156,7 +156,7 @@ app.get('/api/avatars', async (req, res) => {
 app.get('/api/avatars/byid', async (req, res) => {
   try{
     const user_id = checkToken(req);
-    const asked_id = req.headers['asked_id'];
+    const asked_id = req.headers.asked_id;
     if(!user_id) return res.status(401).json({ error: 'Токен невалиден' });
     const { data, error } = await db.storage
      .from('avatars')
