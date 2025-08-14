@@ -13,18 +13,34 @@ function Messenger() {
 
     //Инициализация userData, socket, получение сообщений при загрузке
     useEffect(() => {
+        //Определяем протокол для подключения к вебсокету через относительный URL
+        const WebSocketUrl = () => {
+            const URLdefiner = () => {
+                if(window.location.host === 'localhost:3000'){
+                    return `ws://localhost:5000/messenger?token=${token}`;
+                }
+                else{
+                    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                    return `${protocol}//${window.location.host}/messenger?token=${token}`;
+                }
+            }
+            const url = URLdefiner();
+            console.log("WebSocket URL:", url); // Проверьте в консоли браузера
+            return url;
+        };
         setUserData(JSON.parse(sessionStorage.getItem('userData')));
-        setSocket(new WebSocket(`ws://192.168.1.84:5000/messenger?token=${token}`));
+        setSocket(new WebSocket(WebSocketUrl()));
+        
         const fetchStaff = async() => {
             try {
-                const res = await fetch(`${process.env.REACT_APP_URL}/api/staff`, {
+                const res = await fetch(`/api/staff`, {
                     headers: {'Authorization': `Bearer ${token}`},
                     cache: 'no-store'});
                 if(!res.ok) throw new Error('Ошибка получения персонала');
                 const data = await res.json();
     
                 const avatarPromises = data.map(person => 
-                    fetch(`${process.env.REACT_APP_URL}/api/avatars/byid`, {
+                    fetch(`/api/avatars/byid`, {
                         headers: {
                         'Authorization': `Bearer ${token}`,
                         'Asked_id': person.id },
@@ -47,7 +63,7 @@ function Messenger() {
         const fetchMessages = async() => {
             const token = sessionStorage.getItem('token');
             try {
-                const res = await fetch(`${process.env.REACT_APP_URL}/api/messenger`, {
+                const res = await fetch(`/api/messenger`, {
                     headers: {'Authorization': `Bearer ${token}`},
                     cache: 'no-store'});
                 if(!res.ok) throw new Error('Ошибка получения сообщений');
@@ -110,7 +126,7 @@ function Messenger() {
         if(chosenContact !== null){
             const setDelivered = async() => {
                 try {
-                    const res = await fetch(`${process.env.REACT_APP_URL}/api/messenger`, {
+                    const res = await fetch(`/api/messenger`, {
                         method: 'POST',
                         headers: {
                             'Authorization': `Bearer ${token}`,

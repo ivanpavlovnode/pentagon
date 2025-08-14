@@ -4,7 +4,6 @@ import Header from './components/Header';
 import Account from './components/Account';
 import Staff from './components/Staff';
 import Documents from './components/Documents';
-import Nuclear from './components/Nuclear';
 import Messenger from './components/Messenger';
 import Auth from './components/Auth';
 
@@ -42,11 +41,6 @@ function App(){
   {
     displayedComponent = <Documents />;
   }
-  else if(currentComponent === 'nuclear') 
-  {
-    displayedComponent = <Nuclear />;
-  }
-
 
   //Проверка аутентификации, выдача <del>в лицо</del> окна аутентификации
   if(isAuth !== 'nope' || sessionStorage.getItem("token") !== null)

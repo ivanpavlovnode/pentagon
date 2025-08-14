@@ -1,4 +1,6 @@
 {
+  "homepage": ".",
+  "proxy": "http://localhost:5000",
   "name": "level2",
   "version": "0.1.0",
   "private": true,

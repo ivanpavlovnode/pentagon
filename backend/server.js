@@ -8,33 +8,24 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
 const WebSocket = require ('ws');
+const path = require('path');
 //Подключение приложения
 const app = express();
 const server = http.createServer(app);
-//CORS для dev режима с двух портов, также для тестов с телефона
+//CORS готовый для деплоя
 app.use(cors({
-  origin: [
+  origin: process.env.NODE_ENV === 'production' ? 
+    true // Разрешить ВСЕ домены в продакшене
+    : [
     'http://localhost:3000',
     'http://192.168.1.17:3000',
     'http://192.168.1.84:3000'
-  ],
-  credentials: true 
+      ],
+  credentials: true
 }));
 app.use(express.json());
 //Читаем порт из env или 5000
 const port = process.env.PORT || 5000;
-//Создаем вебсокет сервер
-const wss = new WebSocket.Server({noServer: true});
-const websocketConnections = new Map();
-server.on('upgrade', (request, socket, head) => {
-  if (request.url.startsWith('/messenger'))
-  {
-    wss.handleUpgrade(request, socket, head, (ws) => {
-      wss.emit('connection', ws, request);
-    });
-  }
-  else {socket.destroy()};
-});
 //Тестовый роут
 app.get('/api/test', (req, res) => {
   if(req || !req) return res.status(200).json({ message: 'А нам все равно, а нам все равно'});
@@ -548,18 +539,7 @@ app.post('/api/documents/file', upload.single('file'), async (req, res) => {
     return res.status(500).json({ error: 'Server file upload error'});
   }
 });
-//Обработчик ошибок, чтобы сервер не падал
-app.use((err, req, res, next) => {
-  if (err instanceof multer.MulterError) {
-    res.status(400).json({ error: 'Denied by Multer, uncorrect file' });
-  } else {
-    console.error(err);
-    res.status(520).json({ error: 'UNKNOWN SERVER ERROR' });
-  }
-});
-/*WEBSOCKET SERVER WEBSOCKET SERVER WEBSOCKET SERVER
-  WEBSOCKET SERVER WEBSOCKET SERVER WEBSOCKET SERVER
-  WEBSOCKET SERVER WEBSOCKET SERVER WEBSOCKET SERVER*/
+/*WEBSOCKET SERVER WEBSOCKET SERVER WEBSOCKET SERVER*/
 // Функция рассылки пришедшего сообщения через сокеты
 function notifyUsers(message){
   const participants = [message.sender, message.getter];
@@ -574,11 +554,38 @@ function notifyUsers(message){
     };
   });
 }
+//Создаем вебсокет сервер
+const wss = new WebSocket.Server({noServer: true});
+//Карта подключений для хранения сокетов
+const websocketConnections = new Map();
+//Апгрейдим сервер
+server.on('upgrade', (request, socket, head) => {
+  if (request.url.startsWith('/messenger'))
+  {
+    wss.handleUpgrade(request, socket, head, (ws) => {
+      wss.emit('connection', ws, request);
+    });
+  }
+  else {socket.destroy()};
+});
 // Весь вебсокет для мессенджера
 wss.on('connection', (socket, request) => {
   try {
+    const websocketProtocol = (req) => {
+      if (req.headers['x-forwarded-proto']) {
+        return `${req.headers['x-forwarded-proto']}:`;
+      }
+      return req.socket.encrypted ? 'https' : 'http';
+    }
+    const protocol = websocketProtocol(request);
+    const url = new URL(request.url, `${protocol}://${request.headers.host}`);
     //Аутентификация для соединения
-    const token = new URL(request.url, 'ws://localhost').searchParams.get('token');
+    const token = url.searchParams.get('token');
+    if(!token){
+      socket.close(4403, 'Token required');
+      return;
+    }
+    //Получаем айди пользователя из токена
     const user_id = jwt.verify(token, process.env.JWT_SECRET).id;
     //Добавляем пользователя в Map по айди
     websocketConnections.set(user_id, socket);
@@ -611,8 +618,35 @@ wss.on('connection', (socket, request) => {
     });
   }
   catch{
-    socket.close(1008, 'Invalid token');
-    return;
+    socket.close(4401, 'Unauthorized');
+  }
+});
+
+
+//Path для статических файлов
+app.use(express.static(path.resolve(__dirname, 'client/build')));
+
+//Роут для выдачи React приложения
+app.get(/.*/, (req, res) => {
+  // Пропускаем вебсокет
+  if (req.path.startsWith('/messenger')) {
+    return next();
+  }
+  // Пропускаем статические файлы
+  if (req.path.startsWith('/static/')) {
+    return next();
+  }
+  res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+});
+
+
+//Обработчик ошибок, чтобы сервер не падал
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    res.status(400).json({ error: 'Denied by Multer, uncorrect file' });
+  } else {
+    console.error(err);
+    res.status(520).json({ error: 'UNKNOWN SERVER ERROR' });
   }
 });
 // Запускаем сервер

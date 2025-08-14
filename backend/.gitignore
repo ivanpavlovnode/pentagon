@@ -145,4 +145,5 @@ yarn-error.log*
 
 /coverage
 # production
+client/build/
 /build

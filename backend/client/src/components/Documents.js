@@ -17,7 +17,7 @@ function Documents() {
 
     const fetchDocs = async() => {
         try{
-            const res = await fetch(`${process.env.REACT_APP_URL}/api/documents`, {
+            const res = await fetch(`/api/documents`, {
                     headers: {'Authorization': `Bearer ${token}`},
                     cache: 'no-store'});
                 if(!res.ok) throw new Error('Ошибка получения документов');
@@ -31,7 +31,7 @@ function Documents() {
     const fetchStaff = async() => {
             const token = sessionStorage.getItem('token');
             try {
-                const res = await fetch(`${process.env.REACT_APP_URL}/api/staff`, {
+                const res = await fetch(`/api/staff`, {
                     headers: {'Authorization': `Bearer ${token}`},
                     cache: 'no-store'});
                 if(!res.ok) throw new Error('Ошибка получения персонала');

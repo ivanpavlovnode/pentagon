@@ -126,7 +126,7 @@ function Multiwindow(){
     const uploadFile = async(document_id) => {
         file.current.append('id', document_id);
         try {
-            const res = await fetch(`${process.env.REACT_APP_URL}/api/documents/file`, {
+            const res = await fetch(`/api/documents/file`, {
                 method: 'POST',
                 headers: {'Authorization': `Bearer ${token}`},
                 cache: 'no-store',
@@ -148,7 +148,7 @@ function Multiwindow(){
     //Функция для скачивания файла
     const downloadFile = async() => {
         try{
-            const res = await fetch(`${process.env.REACT_APP_URL}/api/documents/file`, {
+            const res = await fetch(`/api/documents/file`, {
                 headers: 
                 {
                     'Authorization': `Bearer ${token}`,
@@ -177,7 +177,7 @@ function Multiwindow(){
     //Запрос для обновления документа
     const updateDocument = async() => {
         try {
-            const res = await fetch(`${process.env.REACT_APP_URL}/api/documents`, {
+            const res = await fetch(`/api/documents`, {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -230,7 +230,7 @@ function Multiwindow(){
     //Запрос для создания документа
     const createDocument = async() => {
         try {
-            const res = await fetch(`${process.env.REACT_APP_URL}/api/documents`, {
+            const res = await fetch(`/api/documents`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
