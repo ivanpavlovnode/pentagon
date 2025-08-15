@@ -39,10 +39,10 @@ const upload = multer({
       'image/jpeg',
       'image/png',
       'image/gif',
-      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       'application/pdf',
       'application/rtf',
-      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'text/plain'
     ];
     if(allowedTypes.includes(file.mimetype)){
@@ -421,7 +421,7 @@ app.get('/api/documents/file', async (req, res) => {
       return res.status(403).json({error: 'Access denied'});
     }
     //Проверяем принадлежность пользователя
-    if(document.recipient !== null && (document.creator !== user_id || document.recipient !== user_id)){
+    if(document.recipient !== null && document.creator !== user_id && document.recipient !== user_id){
       return res.status(403).json({error: 'Access denied'});
     }
     //Ищем требуемый файл
@@ -458,8 +458,6 @@ app.get('/api/documents/file', async (req, res) => {
       }
     }
     //Отправляем файл
-    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-    res.set('Cache-Control', 'public, max-age=31536000');
     res.status(200).send(Buffer.from(await file.arrayBuffer()));
   }
   catch(err) {
