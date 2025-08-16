@@ -647,5 +647,6 @@ app.use((err, req, res, next) => {
     res.status(520).json({ error: 'UNKNOWN SERVER ERROR' });
   }
 });
-// Запускаем сервер
-server.listen(port);
+// Запускаем сервер, добавлен лупбэк для работы с nginx. 
+// Так express должен слушать только локальные подключения, проксированные nginx
+server.listen(port, '127.0.0.1');
