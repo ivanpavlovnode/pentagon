@@ -571,7 +571,7 @@ wss.on('connection', (socket, request) => {
   try {
     const websocketProtocol = (req) => {
       if (req.headers['x-forwarded-proto']) {
-        return `${req.headers['x-forwarded-proto']}:`;
+        return `${req.headers['x-forwarded-proto']}`;
       }
       return req.socket.encrypted ? 'https' : 'http';
     }
