@@ -43,7 +43,7 @@ function Messenger() {
                     fetch(`/api/avatars/byid`, {
                         headers: {
                         'Authorization': `Bearer ${token}`,
-                        'Asked_id': person.id },
+                        'asked-id': person.id },
                         cache: 'no-store'})
                     .then(res => res.blob())
                 );
