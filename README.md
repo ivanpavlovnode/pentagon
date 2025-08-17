@@ -1,8 +1,10 @@
 # Pentagon - пародийный портал (React/Express)
-[Рабочий проект] (https://ivanpavlov.site)
-Данные гостевой учетной записи: 
+[🌐Рабочий проект](https://ivanpavlov.site)
+Данные гостевой учетной записи (вводить только числа!): 
+```userData
 id: 12 
 password: 0000
+```
 
 ## Особенности
 - Мессенджер в реальном времени с поиском собеседников по имени, историей сообщений
@@ -25,6 +27,7 @@ password: 0000
 
 ## Локальный запуск
 Вам потребуется БД Supabase со следующей структурой:
+```sql
 CREATE TABLE public.Documents (
   id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
   creator integer NOT NULL,
@@ -58,15 +61,24 @@ CREATE TABLE public.Staff (
   service_record text NOT NULL DEFAULT 'No record'::text,
   CONSTRAINT Staff_pkey PRIMARY KEY (id)
 );
+```
 Также нужно создать две корзины в хранилище с именами "avatars" и "documents".
 В таблице Staff необходимо создать свою учетную запись с паролем. 
-Затем ваши данные нужно вписать в .env файл, как показано в /backend/.env.example
-Когда все подготовлено в терминале выполнить
+Затем ваши данные нужно создать .env файл в /backend, и заполнить как показано ниже
+# Не забудьте вписать свои значения!
+SUPABASE_URL=your.supabase.url
+SUPABASE_ANON_KEY=yourAnonKeyFromSupabase
+SUPABASE_SERVICE_ROLE_KEY=yourServiceKeyFromSupabase
+JWT_SECRET=yourKeyEnterWhatYouWantItMustBeStrong
+PORT=5000
+NODE_ENV=production
+
+Когда все подготовлено, в терминале нужно перейти в директорию для проекта и выполнить:
 ```bash
 git clone https://github.com/bickdick0/pentagon
-cd /backend
+cd pentagon/backend
 npm install
-cd /client
+cd client
 npm install
 cd ../
 npm run build-client
