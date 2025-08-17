@@ -18,13 +18,13 @@ return (
             {isToggled && (
                 <div>
                     <button className="header__button"
-                    onClick = {() => {props.changeComponent('account'); setTitle('Account');}}>Account</button>
+                    onClick = {() => {props.changeComponent('account'); setTitle('Account'); Toggle()}}>Account</button>
                     <button className="header__button"
-                    onClick = {() => {props.changeComponent('staff'); setTitle('Staff');}}>Staff</button>
+                    onClick = {() => {props.changeComponent('staff'); setTitle('Staff'); Toggle()}}>Staff</button>
                     <button className="header__button"
-                    onClick = {() => {props.changeComponent('messenger'); setTitle('Messenger');}}>Messenger</button>
+                    onClick = {() => {props.changeComponent('messenger'); setTitle('Messenger'); Toggle()}}>Messenger</button>
                     <button className="header__button"
-                    onClick = {() => {props.changeComponent('documents'); setTitle('Documents');}}>Documents</button>
+                    onClick = {() => {props.changeComponent('documents'); setTitle('Documents'); Toggle()}}>Documents</button>
                     <button className="header__button"
                     onClick = {() => {sessionStorage.clear(); window.location.reload();}}>Log out</button>
                 </div>

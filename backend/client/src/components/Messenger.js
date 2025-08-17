@@ -189,7 +189,7 @@ function Messenger() {
                         .filter(person => person.id !== userData.id)
                         .map(person =>  (
                         <div key = {person.id}>
-                            <button onClick = {() => setContact(person.id)}>{person.full_name}</button>
+                            <button onClick = {() => {setContact(person.id); setSearch('')}}>{person.full_name}</button>
                         </div>
                     ))}
                 </div>
@@ -206,7 +206,7 @@ function Messenger() {
                     <button onClick = {() => sendMessage()}>Send</button>
                 </div>
                 <div id = "messenger_history">
-                        {messages
+                        {chosenContact !== null && messages
                         .sort((a, b) => b.id - a.id)
                         .filter(message => message.sender === chosenContact || message.getter === chosenContact)
                         .map(message => {
@@ -221,6 +221,9 @@ function Messenger() {
                                 </div>
                             );
                         })}
+                        {chosenContact === null &&
+                            <div id = "messenger_history">CONTACT IS NOT CHOSEN. TYPE NAME IN "SEARCH" FIELD AND CLICK ON THE RIGHT PERSON TO CHOOSE CONTACT. TO CHANGE CONTACT, TYPE ANOTHER NAME AND CLICK ON THE NEW PERSON.</div>
+                        }
                 </div>
             </main>
         );

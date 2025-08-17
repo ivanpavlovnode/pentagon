@@ -48,6 +48,7 @@ button{
     text-align: justify;
     line-height: 1;
     padding: 20px;
+    white-space: pre-line;
     &::-webkit-scrollbar{
         display: none;
     }
